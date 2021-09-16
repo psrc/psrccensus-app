@@ -1,7 +1,9 @@
 .main-control {
-  /*border: dashed pink;*/
   display: flex;
-  margin: 0 1.5rem;
+  margin: 0;
+  background-color: #f2f2f2;
+  padding: 1.5rem;
+  border-radius: 10px;
 }
 
 .main-control div {
@@ -9,21 +11,15 @@
 }
 
 .main-control > div:nth-child(1) {
-   /*margin-left: 2rem;*/
+   /*Output Type radio buttons*/
   width: 11%;
   
 }
 
 .main-control > div:nth-child(4) {
+  /*Enter button*/
   align-self: center;
 }
-
- /*
-.top-selection,
-.bottom-selection {
-  border: dashed pink;
-}
-*/
 
 /* reduce gap between top-selection & bottom-selection*/
 .selectize-control.single.plugin-selectize-plugin-a11y {
@@ -34,5 +30,8 @@
 .form-group.shiny-input-container {
   margin-bottom: 0;
 }
+/**/
 
-
+.visual-section {
+  margin-top: 3rem;
+}

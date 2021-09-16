@@ -62,37 +62,59 @@ server <- function(input, output, session) {
     
     ## render visuals ----
     
-    output$ui_main_tbl <- renderUI({
+    output$main_tbl <- renderTable({
+        if(input$go == 0) return()
+        
+        input$go
+        
+        if(isolate(input$output_type) == 1) {
+            mpg %>% 
+                slice(1:20)
+            
+        } else if(isolate(input$output_type) == 2) {
+            billboard %>% 
+                select(1:6) %>%
+                slice(1:20)
+        } else {
+            starwars %>% 
+                select(1:8) %>% 
+                slice(1:20)
+        }
+        
         
     })
     
     output$ui_main_vis <- renderUI({
+        if(input$go == 0) return()
+        
         input$go
         
         if(isolate(input$output_type) != 2) {
             plotOutput('main_vis')
         } else if(isolate(input$output_type) == 2) {
-            leafletOutput('main_map')
+            div('A Map',
+                leafletOutput('main_map'))
+            
         }
     })
     
     output$main_vis <- renderPlot({
-        input$go
         
         ggplot(mpg, aes(x = displ, y = cty, color = class)) +
             geom_point() +
             labs(title = 'A Graph')
+        
     })
     
     output$main_map <- renderLeaflet({
-        input$go
         
         leaflet() %>%
             addTiles() %>% 
-            addMarkers(lng=-122.33781311125064, lat=47.60469023724731, popup="PSRC")
+            addMarkers(lng=-122.33781311125064, lat=47.60469023724731)
+        
     })
     
-   
+    
     
 }
 
