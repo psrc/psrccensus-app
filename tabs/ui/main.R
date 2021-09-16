@@ -40,9 +40,17 @@ main <- tabPanel("Main",
                        ),
                     
                        div(
-                         actionButton("enter",
+                         actionButton("go",
                                       label = "Enter")
                        )
                    ) # end div main-control
-                 ) # end fluidRow
+                 ), # end fluidRow
+                 fluidRow(
+                   column(uiOutput('ui_main_tbl'),
+                          width = 6),
+                   column(uiOutput('ui_main_vis'),
+                          width = 6)
+                   
+                 )
+                 
 ) # end tabPanel
