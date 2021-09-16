@@ -1,0 +1,38 @@
+.main-control {
+  /*border: dashed pink;*/
+  display: flex;
+  margin: 0 1.5rem;
+}
+
+.main-control div {
+  margin-right: .5rem;
+}
+
+.main-control > div:nth-child(1) {
+   /*margin-left: 2rem;*/
+  width: 11%;
+  
+}
+
+.main-control > div:nth-child(4) {
+  align-self: center;
+}
+
+ /*
+.top-selection,
+.bottom-selection {
+  border: dashed pink;
+}
+*/
+
+/* reduce gap between top-selection & bottom-selection*/
+.selectize-control.single.plugin-selectize-plugin-a11y {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.form-group.shiny-input-container {
+  margin-bottom: 0;
+}
+
+
