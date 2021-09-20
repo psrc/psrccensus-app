@@ -1,9 +1,23 @@
-.main-control {
+#mainCtrlBox {
   display: flex;
   margin: 0;
-  background-color: #f2f2f2;
-  padding: 1.5rem;
   border-radius: 10px;
+}
+
+.background {
+  background-color: #f2f2f2;
+  justify-content: space-between;
+  padding: 1.5rem;
+}
+
+.background-invisible {
+  background-color: white;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.main-control {
+  display: flex;
 }
 
 .main-control div {
@@ -12,7 +26,7 @@
 
 .main-control > div:nth-child(1) {
    /*Output Type radio buttons*/
-  width: 11%;
+  width: 17%;
   
 }
 
@@ -20,6 +34,12 @@
   /*Enter button*/
   align-self: center;
 }
+
+.hide-show-btn {
+  border: none;
+  background-color: transparent;
+}
+
 
 /* reduce gap between top-selection & bottom-selection*/
 .selectize-control.single.plugin-selectize-plugin-a11y {
@@ -34,4 +54,8 @@
 
 .visual-section {
   margin-top: 3rem;
+}
+
+.remove-margin {
+  margin-top: 0;
 }

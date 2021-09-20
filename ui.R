@@ -1,12 +1,9 @@
 ui  <- fluidPage(
-    # bslib previewer doesn't work!
-    # theme = bs_theme(primary = "#FF00F3", 
-    #                  heading_font = font_google("Pacifico"), 
-    #                  spacer = "0rem"),
+    useShinyjs(),
     tags$head(
-        tags$link(rel = "stylesheet", type = "text/css", href = "styles.css")
-    ),
-    
+        tags$link(rel = "stylesheet", type = "text/css", href = "styles.css"),
+        tags$script(src = "js-script.js")
+        ),
     navbarPage(
         title = 'PSRC Census Tool',
         
@@ -14,8 +11,6 @@ ui  <- fluidPage(
         main,
         about
         
-    )#,
-    # tableOutput('var_table')
-    
+    )
 ) # end fluidPage
 
