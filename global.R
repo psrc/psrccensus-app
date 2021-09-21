@@ -3,6 +3,8 @@ library(leaflet)
 library(tidyverse)
 library(odbc)
 library(DBI)
+library(fontawesome)
+library(shinyjs)
 
 db.table <- 'census.variable_dim'
 

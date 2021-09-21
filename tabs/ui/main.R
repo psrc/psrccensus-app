@@ -19,26 +19,27 @@ input.topic <- selectInput('topic',
 # Year from census_year.
 
 main.control <- fluidRow(
-  div(class = 'main-control',
+  div(id = 'mainCtrlBox',
+      class = 'background',
+      div(id = 'mainCtrlCont',
+          class = 'main-control',
           div(input.outtype),
           div(
-            div(class = 'top-selection',
-                input.topic
-            ),
-            div(class = 'bottom-selection',
-                uiOutput('ui_var_name')
-            )
+            input.topic,
+            uiOutput('ui_var_name')
           ),
           div(
-            div(class = 'top-selection',
-                uiOutput('ui_dataset')
-            ),
-            div(class = 'bottom-selection',
-                uiOutput('ui_dataset_year')
-            )
+            uiOutput('ui_dataset'),
+            uiOutput('ui_dataset_year')
           ),
-      div(actionButton("go",
-                       label = "Enter"))
+          div(actionButton("go",
+                           label = "Enter"))
+      ), # end .main-control
+      
+      # hide/show controls
+        actionButton('ctrlBtn',
+                     class = 'hide-show-btn',
+                     label = fa("angle-double-up", fill = "#318ce7", width = '1rem'))
       
   ) # end div main-control
 ) # end fluidRow
@@ -51,6 +52,5 @@ vis.section <-  fluidRow(class = 'visual-section',
 ) # end fluidRow
 
 main <- tabPanel("Main",
-                 main.control, 
-                 vis.section  
-) # end tabPanel
+                 main.control,
+                 vis.section)

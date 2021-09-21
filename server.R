@@ -3,6 +3,15 @@ server <- function(input, output, session) {
 
 # main controls -----------------------------------------------------------
 
+    observeEvent(input$ctrlBtn, {
+        
+        if(input$ctrlBtn %% 2 == 1){
+            hide(id = "mainCtrlCont")
+        } else {
+            show(id = "mainCtrlCont")
+        }
+        
+    })
     
     output$ui_var_name <- renderUI({
         if(is.null(input$topic)) return(NULL)
