@@ -3,17 +3,17 @@ suppressMessages(lapply(extra_files, source))
 
 input.geog <- selectInput('geog_type',
                           label = 'Geography',
-                          choices = c('Counties & Region' = 1,
-                                      'Tract' = 2,
-                                      'MSA' = 3,
-                                      'Place' = 4
+                          choices = c('Counties & Region' = 'county',
+                                      'Tract' = 'tract',
+                                      'MSA' = 'msa',
+                                      'Place' = 'place'
                                       ),
                           selected = 1)
 
-input.fips <- conditionalPanel(condition = "input.geog_type == 3 | input.geog_type == 4",
-                                      textInput("fips", 
-                                                label = 'Enter FIPS',
-                                                placeholder = '14740, 42660'))
+input.fips <- conditionalPanel(condition = "input.geog_type == 'msa' | input.geog_type == 'place'",
+                               textInput("fips", 
+                                         label = 'Enter FIPS',
+                                         placeholder = '14740, 42660'))
 
 input.vis <- radioButtons('vis_type',
                           label = 'Visual',
@@ -68,7 +68,7 @@ main.control <- fluidRow(
 ) # end fluidRow
 
 vis.section <-  fluidRow(class = 'visual-section',
-                         column(tableOutput('main_tbl'),
+                         column(DTOutput('main_tbl'),
                                 width = 6),
                          column(uiOutput('ui_main_vis'),
                                 width = 6)

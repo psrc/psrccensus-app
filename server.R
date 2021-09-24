@@ -18,7 +18,8 @@ server <- function(input, output, session) {
         
         selectInput('var_name',
                     'Variable',
-                    choices = var_names())
+                    choices = c('All Variables' = 'All', var_names())
+                    )
         
     })
     
@@ -47,15 +48,21 @@ server <- function(input, output, session) {
         
         t <- var.df %>% 
             filter(.data$census_table_code == input$topic) 
+        # browser()
+        t.dist <- t %>% 
+            select(variable_description, name) %>% 
+            distinct()
         
-        unique(t$variable_description)
+        vars <- t.dist$name
+        names(vars) <- t.dist$variable_description
+        return(vars)
     })
     
     dataset <- reactive({
         if(is.null(input$var_name)) return(NULL)
-        
+     
         t <- var.df %>% 
-            filter(.data$census_table_code == input$topic & .data$variable_description == input$var_name)
+            filter(.data$census_table_code == input$topic)
         
         sort(unique(t$census_product))
     })
@@ -63,9 +70,9 @@ server <- function(input, output, session) {
     
     dataset_year <- reactive({
         if(is.null(input$dataset)) return(NULL)
-        
+
         t <- var.df %>% 
-            filter(.data$census_table_code == input$topic & .data$variable_description == input$var_name & .data$census_product == input$dataset) 
+            filter(.data$census_table_code == input$topic & .data$census_product == input$dataset) 
         
         sort(unique(t$census_year))
     })
@@ -73,86 +80,87 @@ server <- function(input, output, session) {
 
     ## reactives ----
     
-    # main_table <- eventReactive(input$go, {
-    #     # generate table
-    #     # input$trend
-    #     # input$geog_type
-    #     # input$topic
-    #     # input$var_names
-    #     # input$dataset
-    #     # input$dataset_year
-    # 
-    #     # query var.df for # 'census_table_code' 'name'
-    # 
-    #     if(input$dataset %in% c('ACS1', 'ACS5')) {
-    #         # Don't forget FIPS
-    #         get_acs_recs(geography = input$geog_type,
-    #                      table.names = ,
-    #                      years = input$dataset_year,
-    #                      acs.type = str_to_lower(input$dataset))
-    # 
-    #     } else if(input$dataset == 'Decennial') {
-    #         # use var.df.dist$census_table_code_pad
-    #         get_decennial_recs()
-    #     }
-    # 
-    # 
-    # 
-    # })
+    main_table <- eventReactive(input$go, {
+        # input$trend
+        # input$geog_type
+        # input$topic
+        # input$var_name
+        # input$dataset
+        # input$dataset_year
+
+        # clean and vectorize fips
+        if(!is.null(input$fips)) {
+            fips <- unlist(str_split(input$fips, ",\\s"))
+        } else {
+            fips <- NULL
+        }
+        
+        if(input$dataset %in% c('ACS1', 'ACS5')) {
+            
+            recs <- get_acs_recs(geography = input$geog_type,
+                                 table.names = input$topic,
+                                 years = as.numeric(input$dataset_year),
+                                 FIPS = fips,
+                                 acs.type = str_to_lower(input$dataset))
+
+        } else if(input$dataset == 'Decennial') {
+            # use var.df.dist$census_table_code_pad
+            get_decennial_recs()
+        }
+
+        if(input$var_name != 'All') {
+            recs <- recs %>%
+                filter(variable == input$var_name)
+        }
+        return(recs)
+    })
     
     ## render visuals ----
     
-    output$main_tbl <- renderTable({
+    output$main_tbl <- renderDT({
         if(input$go == 0) return()
-        
         input$go
         
-        if(isolate(input$output_type) == 1) {
-            mpg %>% 
-                slice(1:20)
-            
-        } else if(isolate(input$output_type) == 2) {
-            billboard %>% 
-                select(1:6) %>%
-                slice(1:20)
-        } else {
-            starwars %>% 
-                select(1:8) %>% 
-                slice(1:20)
+        df <- main_table()
+
+        if(input$dataset != 'Decennial') {
+            hide_cols <- c('concept', 'census_geography', 'acs_type', 'year')
+            target <- which(colnames(df) %in% hide_cols)
         }
         
-        
+        datatable(main_table(),
+                  options = list(columnDefs = list(list(visible = FALSE, targets = target))))
     })
     
-    output$ui_main_vis <- renderUI({
-        if(input$go == 0) return()
-        
-        input$go
-        
-        if(isolate(input$output_type) != 2) {
-            plotOutput('main_vis')
-        } else if(isolate(input$output_type) == 2) {
-            div('A Map',
-                leafletOutput('main_map'))
-            
-        }
-    })
+    # output$ui_main_vis <- renderUI({
+    #     if(input$go == 0) return()
+    #     
+    #     input$go
+    #     
+    #     if(isolate(input$output_type) != 2) {
+    #         plotOutput('main_vis')
+    #     } else if(isolate(input$output_type) == 2) {
+    #         div('A Map',
+    #             leafletOutput('main_map'))
+    #         
+    #     }
+    # })
     
-    output$main_vis <- renderPlot({
-        
-        ggplot(mpg, aes(x = displ, y = cty, color = class)) +
-            geom_point() +
-            labs(title = 'A Graph')
-        
-    })
+    # output$main_vis <- renderPlot({
+    #     
+    #     ggplot(mpg, aes(x = displ, y = cty, color = class)) +
+    #         geom_point() +
+    #         labs(title = 'A Graph')
+    #     
+    # })
     
-    output$main_map <- renderLeaflet({
-        
-        leaflet() %>%
-            addTiles() %>% 
-            addMarkers(lng=-122.33781311125064, lat=47.60469023724731)
-        
-    })
+    # output$main_map <- renderLeaflet({
+    #     
+    #     leaflet() %>%
+    #         addTiles() %>% 
+    #         addMarkers(lng=-122.33781311125064, lat=47.60469023724731)
+    #     
+    # })
     
     
     
