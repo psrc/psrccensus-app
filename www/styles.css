@@ -25,12 +25,30 @@
 }
 
 .main-control > div:nth-child(1) {
-   /*Output Type radio buttons*/
-  width: 17%;
-  
+  /* Geography, Visual, Trend*/
+  width: 35%;
+  background-color: #bcbec0;
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
 }
 
-.main-control > div:nth-child(4) {
+.main-control-grp {
+  /* Visual, Trend*/
+  width: 30%;
+}
+
+.main-control > div:nth-child(2) {
+  /* Data dropdowns*/
+  display: flex;
+  background-color: #bfe9e7;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-right: 1rem;
+}
+
+
+.main-control > div:last-child {
   /*Enter button*/
   align-self: center;
 }

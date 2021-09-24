@@ -1,21 +1,35 @@
-# tab_files <- list.files(path = "tabs/ui/main", full.names = T)
-# suppressMessages(lapply(tab_files, source))
+extra_files <- list.files(path = "tabs/ui/main", full.names = T)
+suppressMessages(lapply(extra_files, source))
 
-input.outtype <- radioButtons("output_type",
-                              label = "Output Type",
-                              choices = list("Counties & Region" = 1,
-                                             "Tract" = 2,
-                                             "Trend" = 3),
-                              selected = 1)
+input.geog <- selectInput('geog_type',
+                          label = 'Geography',
+                          choices = c('Counties & Region' = 1,
+                                      'Tract' = 2,
+                                      'MSA' = 3,
+                                      'Place' = 4
+                                      ),
+                          selected = 1)
+
+input.fips <- conditionalPanel(condition = "input.geog_type == 3 | input.geog_type == 4",
+                                      textInput("fips", 
+                                                label = 'Enter FIPS',
+                                                placeholder = '14740, 42660'))
+
+input.vis <- radioButtons('vis_type',
+                          label = 'Visual',
+                          choices = c('Graph' = 1,
+                                      'Map' = 2))
+
+input.trend <- checkboxInput('trend',
+                             label = 'Trend')
 
 input.topic <- selectInput('topic',
                            'Topic',
-                           choices = unique(var.df$concept),
-                           width = '100%')
+                           choices = vars)
 
 # table topic field would come from unique values of concept.
 # Variable name from variable_description. 
-# Data Source  from census_product.
+# Data Source from census_product.
 # Year from census_year.
 
 main.control <- fluidRow(
@@ -23,14 +37,23 @@ main.control <- fluidRow(
       class = 'background',
       div(id = 'mainCtrlCont',
           class = 'main-control',
-          div(input.outtype),
           div(
-            input.topic,
-            uiOutput('ui_var_name')
+            div(
+              input.geog,
+              input.fips),
+            div(class = 'main-control-grp',
+                input.vis,
+                input.trend)
           ),
           div(
-            uiOutput('ui_dataset'),
-            uiOutput('ui_dataset_year')
+            div(
+              input.topic,
+              uiOutput('ui_var_name')
+            ),
+            div(
+              uiOutput('ui_dataset'),
+              uiOutput('ui_dataset_year')
+            )
           ),
           div(actionButton("go",
                            label = "Enter"))

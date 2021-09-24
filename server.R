@@ -40,34 +40,65 @@ server <- function(input, output, session) {
                     width = '20rem')
     })
 
-    ## reactives ----
+    ## main control reactives ----
     
-    dataset_year <- reactive({
-        if(is.null(input$dataset)) return(NULL)
+    var_names <- reactive({
+        if(is.null(input$topic)) return(NULL)
         
         t <- var.df %>% 
-            filter(.data$concept == input$topic & .data$variable_description == input$var_name & .data$census_product == input$dataset) 
+            filter(.data$census_table_code == input$topic) 
         
-        unique(t$census_year)
+        unique(t$variable_description)
     })
     
     dataset <- reactive({
         if(is.null(input$var_name)) return(NULL)
         
         t <- var.df %>% 
-            filter(.data$concept == input$topic & .data$variable_description == input$var_name)
+            filter(.data$census_table_code == input$topic & .data$variable_description == input$var_name)
         
-        unique(t$census_product)
+        sort(unique(t$census_product))
     })
     
-    var_names <- reactive({
-        if(is.null(input$topic)) return(NULL)
-       
-        t <- var.df %>% 
-            filter(.data$concept == input$topic) 
+    
+    dataset_year <- reactive({
+        if(is.null(input$dataset)) return(NULL)
         
-        unique(t$variable_description)
+        t <- var.df %>% 
+            filter(.data$census_table_code == input$topic & .data$variable_description == input$var_name & .data$census_product == input$dataset) 
+        
+        sort(unique(t$census_year))
     })
+    
+
+    ## reactives ----
+    
+    # main_table <- eventReactive(input$go, {
+    #     # generate table
+    #     # input$trend
+    #     # input$geog_type
+    #     # input$topic
+    #     # input$var_names
+    #     # input$dataset
+    #     # input$dataset_year
+    # 
+    #     # query var.df for # 'census_table_code' 'name'
+    # 
+    #     if(input$dataset %in% c('ACS1', 'ACS5')) {
+    #         # Don't forget FIPS
+    #         get_acs_recs(geography = input$geog_type,
+    #                      table.names = ,
+    #                      years = input$dataset_year,
+    #                      acs.type = str_to_lower(input$dataset))
+    # 
+    #     } else if(input$dataset == 'Decennial') {
+    #         # use var.df.dist$census_table_code_pad
+    #         get_decennial_recs()
+    #     }
+    # 
+    # 
+    # 
+    # })
     
     ## render visuals ----
     
