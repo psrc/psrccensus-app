@@ -23,9 +23,10 @@ input.vis <- radioButtons('vis_type',
 input.trend <- checkboxInput('trend',
                              label = 'Trend')
 
-input.topic <- selectInput('topic',
-                           'Topic',
-                           choices = vars)
+input.topic <- selectizeInput('topic',
+                              label = 'Topic',
+                              choices = NULL,
+                              options = list(placeholder = 'Type keyword(s) or code and select'))
 
 # table topic field would come from unique values of concept.
 # Variable name from variable_description. 
