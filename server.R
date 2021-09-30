@@ -2,7 +2,14 @@ server <- function(input, output, session) {
 
 
 # main controls -----------------------------------------------------------
-
+    
+    updateSelectizeInput(
+        session, 
+        'topic', 
+        server = TRUE,
+        choices = vars
+    )
+    
     observeEvent(input$ctrlBtn, {
         
         if(input$ctrlBtn %% 2 == 1){
@@ -44,11 +51,12 @@ server <- function(input, output, session) {
     ## main control reactives ----
     
     var_names <- reactive({
+        # populate variable dropdown
         if(is.null(input$topic)) return(NULL)
         
         t <- var.df %>% 
             filter(.data$census_table_code == input$topic) 
-        # browser()
+       
         t.dist <- t %>% 
             select(variable_description, name) %>% 
             distinct()
@@ -59,6 +67,7 @@ server <- function(input, output, session) {
     })
     
     dataset <- reactive({
+        # populate dataset dropdown
         if(is.null(input$var_name)) return(NULL)
      
         t <- var.df %>% 
@@ -69,6 +78,7 @@ server <- function(input, output, session) {
     
     
     dataset_year <- reactive({
+        # populate year dropdown
         if(is.null(input$dataset)) return(NULL)
 
         t <- var.df %>% 
@@ -81,13 +91,7 @@ server <- function(input, output, session) {
     ## reactives ----
     
     main_table <- eventReactive(input$go, {
-        # input$trend
-        # input$geog_type
-        # input$topic
-        # input$var_name
-        # input$dataset
-        # input$dataset_year
-
+        
         # clean and vectorize fips
         if(!is.null(input$fips)) {
             fips <- unlist(str_split(input$fips, ",\\s"))
@@ -95,7 +99,9 @@ server <- function(input, output, session) {
             fips <- NULL
         }
         
+        # access Census API
         if(input$dataset %in% c('ACS1', 'ACS5')) {
+            incProgress(message = 'Gathering ACS data')
             
             recs <- get_acs_recs(geography = input$geog_type,
                                  table.names = input$topic,
@@ -104,14 +110,29 @@ server <- function(input, output, session) {
                                  acs.type = str_to_lower(input$dataset))
 
         } else if(input$dataset == 'Decennial') {
-            # use var.df.dist$census_table_code_pad
-            get_decennial_recs()
+            incProgress(message = 'Gathering Decennial Census data')
+            
+            # find the padded table code for Decennial tables 
+            dec_tbl_code <- var.df.dist %>% 
+                filter(.data$census_table_code == input$topic) %>% 
+                pull(.data$census_table_code_pad)
+            
+            recs <- get_decennial_recs(geography = input$geog_type,
+                                       table_codes = dec_tbl_code,
+                                       year = as.numeric(input$dataset_year),
+                                       fips = fips)
         }
-
+        
+        incProgress(amount = .5, message = 'Data gathered')
+        
+        # filter for variable
         if(input$var_name != 'All') {
             recs <- recs %>%
-                filter(variable == input$var_name)
+                filter(.data$variable == input$var_name)
         }
+        
+        incProgress(amount = .4, message = 'Ready to render data')
+        
         return(recs)
     })
     
@@ -121,11 +142,14 @@ server <- function(input, output, session) {
         if(input$go == 0) return()
         input$go
         
-        df <- main_table()
+        withProgress(df <- main_table(),
+                     detail = 'This may take a while...')
 
         if(input$dataset != 'Decennial') {
             hide_cols <- c('concept', 'census_geography', 'acs_type', 'year')
             target <- which(colnames(df) %in% hide_cols)
+        } else {
+            target <- NULL
         }
         
         datatable(main_table(),
