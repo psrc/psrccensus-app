@@ -13,12 +13,12 @@ input.geog <- selectInput('geog_type',
 input.fips <- conditionalPanel(condition = "input.geog_type == 'msa' | input.geog_type == 'place'",
                                textInput("fips", 
                                          label = 'Enter FIPS',
-                                         placeholder = '14740, 42660'))
+                                         placeholder = 'List FIPS separated by commas'))
 
 input.vis <- radioButtons('vis_type',
                           label = 'Visual',
-                          choices = c('Graph' = 1,
-                                      'Map' = 2))
+                          choices = c('Graph' = 'graph',
+                                      'Map' = 'map'))
 
 input.trend <- checkboxInput('trend',
                              label = 'Trend')

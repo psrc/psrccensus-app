@@ -12,12 +12,28 @@ server <- function(input, output, session) {
     
     observeEvent(input$ctrlBtn, {
         
-        if(input$ctrlBtn %% 2 == 1){
+        if(input$ctrlBtn %% 2 == 1) {
             hide(id = "mainCtrlCont")
         } else {
             show(id = "mainCtrlCont")
         }
         
+    })
+    
+    observeEvent(input$var_name, {
+        
+        if(input$var_name == 'All') {
+            disable("vis_type")
+        } else {
+            enable("vis_type")
+        }
+    })
+    
+    observe({
+        # disable Graph option if Tract geography is selected
+        if(input$geog_type == 'tract') {
+            runjs("$(\"input[name='vis_type'][value='graph']\").prop('disabled', true);")
+        }
     })
     
     output$ui_var_name <- renderUI({
@@ -103,11 +119,21 @@ server <- function(input, output, session) {
         if(input$dataset %in% c('ACS1', 'ACS5')) {
             incProgress(message = 'Gathering ACS data')
             
-            recs <- get_acs_recs(geography = input$geog_type,
-                                 table.names = input$topic,
-                                 years = as.numeric(input$dataset_year),
-                                 FIPS = fips,
-                                 acs.type = str_to_lower(input$dataset))
+            if(input$geog_type == 'place') {
+                # psrccensus get_acs_recs() doesn't filter place geogs
+                recs <- get_acs_recs(geography = input$geog_type,
+                                     table.names = input$topic,
+                                     years = as.numeric(input$dataset_year),
+                                     acs.type = str_to_lower(input$dataset)) %>% 
+                    filter(GEOID %in% fips)
+            } else {
+                recs <- get_acs_recs(geography = input$geog_type,
+                                     table.names = input$topic,
+                                     years = as.numeric(input$dataset_year),
+                                     FIPS = fips,
+                                     acs.type = str_to_lower(input$dataset))
+            }
+            
 
         } else if(input$dataset == 'Decennial') {
             incProgress(message = 'Gathering Decennial Census data')
@@ -119,7 +145,7 @@ server <- function(input, output, session) {
             
             recs <- get_decennial_recs(geography = input$geog_type,
                                        table_codes = dec_tbl_code,
-                                       year = as.numeric(input$dataset_year),
+                                       years = as.numeric(input$dataset_year),
                                        fips = fips)
         }
         
