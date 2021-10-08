@@ -22,7 +22,7 @@ server <- function(input, output, session) {
     
     observeEvent(input$var_name, {
         
-        if(input$var_name == 'All') {
+        if(input$var_name == 'all') {
             disable("vis_type")
         } else {
             enable("vis_type")
@@ -34,7 +34,7 @@ server <- function(input, output, session) {
         
         selectInput('var_name',
                     'Variable',
-                    choices = c('All Variables' = 'All', var_names())
+                    choices = c('All Variables' = 'all', var_names())
                     )
         
     })
