@@ -29,13 +29,6 @@ server <- function(input, output, session) {
         }
     })
     
-    observe({
-        # disable Graph option if Tract geography is selected
-        if(input$geog_type == 'tract') {
-            runjs("$(\"input[name='vis_type'][value='graph']\").prop('disabled', true);")
-        }
-    })
-    
     output$ui_var_name <- renderUI({
         if(is.null(input$topic)) return(NULL)
         
