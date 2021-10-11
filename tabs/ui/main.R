@@ -56,8 +56,8 @@ main.control <- fluidRow(
               uiOutput('ui_dataset_year')
             )
           ),
-          div(actionButton("go",
-                           label = "Enter"))
+          div(downloadButton("download", "Download Data"),
+              actionButton("go", "Enter"))
       ), # end .main-control
       
       # hide/show controls

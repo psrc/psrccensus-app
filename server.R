@@ -67,7 +67,7 @@ server <- function(input, output, session) {
             filter(.data$census_table_code == input$topic) 
        
         t.dist <- t %>% 
-            select(variable_description, name) %>% 
+            select(.data$variable_description, .data$name) %>% 
             distinct()
         
         vars <- t.dist$name
@@ -174,6 +174,57 @@ server <- function(input, output, session) {
         datatable(main_table(),
                   options = list(columnDefs = list(list(visible = FALSE, targets = target))))
     })
+    
+
+# download data  ----------------------------------------------------------
+    
+    
+    ## Enable/Disable download button ----
+    v <- reactiveValues(geog_type = NULL,
+                        fips = NULL,
+                        vis_type = NULL,
+                        topic = NULL,
+                        var_name = NULL,
+                        dataset = NULL,
+                        dataset_year = NULL,
+                        go = 0
+                        )
+    
+    observeEvent(input$go, {
+        # store values in reactive value list after clicking Enter
+        
+        v$geog_type <- input$geog_type
+        v$fips <- input$fips
+        v$vis_type <- input$vis_type
+        v$topic <- input$topic
+        v$var_name <- input$var_name
+        v$dataset <- input$dataset
+        v$dataset_year <- input$dataset_year
+        v$go <- v$go + 1
+    })
+    
+    observe({
+        # disable download button if selection changes
+        
+        if(v$go == 0 || (v$geog_type != input$geog_type) || (v$fips != input$fips) || (v$vis_type != input$vis_type) ||
+           (v$topic != input$topic) || (v$var_name != input$var_name) ||
+           (v$dataset != input$dataset) || (v$dataset_year != input$dataset_year)) {
+            disable("download")
+        } else if(v$go > 0) {
+            enable("download")  
+        }
+    })
+    
+    output$download <- downloadHandler(
+        # download file as excel
+
+        filename = function() {
+            paste0(paste(input$dataset, input$topic, input$dataset_year, "by", input$geog_type, sep = '_'), ".xlsx")
+        },
+        content = function(file) {
+            write.xlsx(main_table(), file)
+        }
+    )
     
     # output$ui_main_vis <- renderUI({
     #     if(input$go == 0) return()
