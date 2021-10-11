@@ -145,7 +145,7 @@ server <- function(input, output, session) {
         incProgress(amount = .5, message = 'Data gathered')
         
         # filter for variable
-        if(input$var_name != 'All') {
+        if(input$var_name != 'all') {
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
         }
