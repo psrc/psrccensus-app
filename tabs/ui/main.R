@@ -38,7 +38,7 @@ main.control <- fluidRow(
       class = 'background',
       div(id = 'mainCtrlCont',
           class = 'main-control',
-          div(
+          div(class = 'box',
             div(
               input.geog,
               input.fips),
@@ -46,7 +46,7 @@ main.control <- fluidRow(
                 input.vis,
                 input.trend)
           ),
-          div(
+          div(class = 'box',
             div(
               input.topic,
               uiOutput('ui_var_name')
