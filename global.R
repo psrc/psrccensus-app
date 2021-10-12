@@ -7,6 +7,7 @@ library(odbc)
 library(DBI)
 library(fontawesome)
 library(shinyjs)
+library(openxlsx)
 
 db.table <- 'census.variable_dim'
 
