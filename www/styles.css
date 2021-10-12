@@ -24,29 +24,26 @@
   margin-right: .5rem;
 }
 
-.main-control > div:nth-child(1) {
-  /* Geography, Visual, Trend*/
-  width: 30%;
-  background-color: #bcbec0;
+.box {
   border-radius: 10px;
   padding: 1rem;
   display: flex;
+}
+
+.box:first-of-type {
+  width: 30%;
+  background-color: #bcbec0;
+}
+
+.box:nth-of-type(2) {
+   background-color: #bfe9e7;
+   margin-right: 1rem;
 }
 
 .main-control-grp {
   /* Visual, Trend*/
   width: 20%;
 }
-
-.main-control > div:nth-child(2) {
-  /* Data dropdowns*/
-  display: flex;
-  background-color: #bfe9e7;
-  border-radius: 10px;
-  padding: 1rem;
-  margin-right: 1rem;
-}
-
 
 .main-control > div:last-child {
   /*Download & Enter button*/
@@ -83,3 +80,65 @@
 .remove-margin {
   margin-top: 0;
 }
+
+/* media queries*/
+ @media screen and (max-width: 1080px) {
+    #mainCtrlBox {
+      display: block;
+      width: auto;
+    }
+    
+    .main-control {
+      display: block;
+    }
+    
+    .box {
+      width: auto;
+      margin-bottom: .75rem;
+    }
+    
+    .box:first-of-type {
+      width: auto;
+    }
+ 
+    .main-control-grp {
+      /* Visual, Trend*/
+      width: auto;
+    }
+/*
+    .hide-show-btn {
+      display: none;
+    }
+*/
+  }
+
+  @media screen and (max-width: 600px) {
+    #mainCtrlBox {
+      display: block;
+      width: auto;
+    }
+    
+    .main-control {
+      display: block;
+    }
+    
+    .box {
+      display: block;
+      width: auto;
+      margin-bottom: .75rem;
+    }
+    
+    .box:first-of-type {
+      width: auto;
+    }
+    
+    .main-control-grp {
+      /* Visual, Trend*/
+      width: auto;
+    }
+/*
+    .hide-show-btn {
+      display: none;
+    }
+*/
+  }
