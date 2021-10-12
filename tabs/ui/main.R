@@ -65,6 +65,10 @@ main.control <- fluidRow(
                      class = 'hide-show-btn',
                      label = fa("angle-double-up", fill = "#318ce7", width = '1rem'))
       
+      # actionButton('ctrlBtn',
+        #              class = 'hide-show-btn',
+        #              label = fa("angle-double-up", fill = "#318ce7", width = '1rem'))
+      
   ) # end div main-control
 ) # end fluidRow
 
