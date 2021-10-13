@@ -20,6 +20,19 @@ server <- function(input, output, session) {
         
     })
     
+    observeEvent(input$ctrlBtn, {
+        if(input$ctrlBtn %% 2 == 1) {
+            updateActionButton(session, 
+                               "ctrlBtn",
+                               label = fa("angle-double-down", fill = "#318ce7", width = '1rem'))
+        } else {
+            updateActionButton(session, 
+                               "ctrlBtn",
+                               label = fa("angle-double-up", fill = "#318ce7", width = '1rem'))
+        }
+        
+    })
+    
     observeEvent(input$var_name, {
         
         if(input$var_name == 'all') {

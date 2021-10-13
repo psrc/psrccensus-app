@@ -34,7 +34,7 @@ input.topic <- selectizeInput('topic',
 # Year from census_year.
 
 main.control <- fluidRow(
-  div(id = 'mainCtrlBox',
+  div(id = 'mainCtrl',
       class = 'background',
       div(id = 'mainCtrlCont',
           class = 'main-control',

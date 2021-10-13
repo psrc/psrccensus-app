@@ -1,4 +1,4 @@
-#mainCtrlBox {
+#mainCtrl {
   display: flex;
   margin: 0;
   border-radius: 10px;
@@ -83,7 +83,7 @@
 
 /* media queries*/
  @media screen and (max-width: 1080px) {
-    #mainCtrlBox {
+    #mainCtrl {
       display: block;
       width: auto;
     }
@@ -113,7 +113,7 @@
   }
 
   @media screen and (max-width: 600px) {
-    #mainCtrlBox {
+    #mainCtrl {
       display: block;
       width: auto;
     }
