@@ -34,7 +34,7 @@ input.topic <- selectizeInput('topic',
 # Year from census_year.
 
 main.control <- fluidRow(
-  div(id = 'mainCtrlBox',
+  div(id = 'mainCtrl',
       class = 'background',
       div(id = 'mainCtrlCont',
           class = 'main-control',
@@ -64,10 +64,6 @@ main.control <- fluidRow(
         actionButton('ctrlBtn',
                      class = 'hide-show-btn',
                      label = fa("angle-double-up", fill = "#318ce7", width = '1rem'))
-      
-      # actionButton('ctrlBtn',
-        #              class = 'hide-show-btn',
-        #              label = fa("angle-double-up", fill = "#318ce7", width = '1rem'))
       
   ) # end div main-control
 ) # end fluidRow
