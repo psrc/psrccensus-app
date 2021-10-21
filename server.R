@@ -33,13 +33,28 @@ server <- function(input, output, session) {
         
     })
     
-    observeEvent(input$var_name, {
+    observe({
+        if(is.null(input$var_name)) return()
         
-        if(input$var_name == 'all') {
+        input$var_name
+        input$geog_type 
+        
+        if(input$var_name != 'all' & input$geog_type == 'tract') {
+            updateRadioButtons(session, 
+                               'vis_type', 
+                               label = 'Visual', 
+                               choices = c('Map' = 'map'),
+                               selected = "map")
+        } else if(input$var_name == 'all') {
             disable("vis_type")
         } else {
-            enable("vis_type")
+            updateRadioButtons(session, 
+                               'vis_type', 
+                               label = 'Visual', 
+                               choices = c('Graph' = 'graph', 'Map' = 'map'),
+                               selected = "map")
         }
+        
     })
     
     output$ui_var_name <- renderUI({
