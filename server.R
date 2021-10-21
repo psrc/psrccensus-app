@@ -183,6 +183,20 @@ server <- function(input, output, session) {
         return(recs)
     })
     
+    show_columns <- eventReactive(input$go, {
+        # return a vector of column names to show in DT
+        
+        df <- main_table()
+        if(input$dataset != 'Decennial') {
+            hide_cols <- c('concept', 'census_geography', 'acs_type', 'year')
+            target <- which(colnames(df) %in% hide_cols)
+        } else {
+            target <- NULL
+        }
+        
+        return(target)
+    })
+    
     ## render visuals ----
     
     output$main_tbl <- renderDT({
@@ -191,16 +205,9 @@ server <- function(input, output, session) {
         
         withProgress(df <- main_table(),
                      detail = 'This may take a while...')
-
-        if(input$dataset != 'Decennial') {
-            hide_cols <- c('concept', 'census_geography', 'acs_type', 'year')
-            target <- which(colnames(df) %in% hide_cols)
-        } else {
-            target <- NULL
-        }
         
-        datatable(main_table(),
-                  options = list(columnDefs = list(list(visible = FALSE, targets = target))))
+        datatable(df,
+                  options = list(columnDefs = list(list(visible = FALSE, targets = show_columns()))))
     })
     
 
