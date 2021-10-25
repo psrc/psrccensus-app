@@ -10,6 +10,20 @@ server <- function(input, output, session) {
         choices = vars
     )
     
+    output$ui_fips <- renderUI({
+        if(input$geog_type == 'place') {
+            selectInput("fips",
+                        'Select Places',
+                        choices = places,
+                        multiple = TRUE)
+        } else if(input$geog_type == 'msa') {
+            selectInput("fips",
+                        'Select MSAs',
+                        choices = msas,
+                        multiple = TRUE)
+        }
+    })
+    
     observeEvent(input$ctrlBtn, {
         
         if(input$ctrlBtn %% 2 == 1) {
@@ -217,6 +231,8 @@ server <- function(input, output, session) {
     ## Enable/Disable download button ----
     v <- reactiveValues(geog_type = NULL,
                         fips = NULL,
+                        # fips_place = NULL,
+                        # fips_msa = NULL,
                         vis_type = NULL,
                         topic = NULL,
                         var_name = NULL,
@@ -227,7 +243,6 @@ server <- function(input, output, session) {
     
     observeEvent(input$go, {
         # store values in reactive value list after clicking Enter
-        
         v$geog_type <- input$geog_type
         v$fips <- input$fips
         v$vis_type <- input$vis_type
@@ -240,8 +255,7 @@ server <- function(input, output, session) {
     
     observe({
         # disable download button if selection changes
-        
-        if(v$go == 0 || (v$geog_type != input$geog_type) || (v$fips != input$fips) || (v$vis_type != input$vis_type) ||
+        if(v$go == 0 || (v$geog_type != input$geog_type) || (v$fips != input$fips) || is.null(input$fips)|| (v$vis_type != input$vis_type) ||
            (v$topic != input$topic) || (v$var_name != input$var_name) ||
            (v$dataset != input$dataset) || (v$dataset_year != input$dataset_year)) {
             disable("download")
