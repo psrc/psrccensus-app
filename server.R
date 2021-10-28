@@ -66,9 +66,8 @@ server <- function(input, output, session) {
                                'vis_type', 
                                label = 'Visual', 
                                choices = c('Graph' = 'graph', 'Map' = 'map'),
-                               selected = "map")
+                               selected = "graph")
         }
-        
     })
     
     output$ui_var_name <- renderUI({
@@ -202,7 +201,7 @@ server <- function(input, output, session) {
         
         df <- main_table()
         if(input$dataset != 'Decennial') {
-            hide_cols <- c('concept', 'census_geography', 'acs_type', 'year')
+            hide_cols <- c('concept', 'census_geography', 'acs_type', 'year', 'state')
             target <- which(colnames(df) %in% hide_cols)
         } else {
             target <- NULL
@@ -211,7 +210,27 @@ server <- function(input, output, session) {
         return(target)
     })
     
-    ## render visuals ----
+    ### map ----
+    
+    map_feature <- eventReactive(input$go, {
+        if(input$geog_type == 'tract') {
+            withProgress(feature <- st_read(gdb.nm, tract.layer.name, crs = spn),
+                        message = 'Reading in tract feature') 
+        }
+        return(feature)
+    })
+    
+    map <- eventReactive(input$go, {
+        df <- main_table()
+        if(input$geog_type == 'tract') {
+            withProgress(map_out <- create_tract_map(tract.tbl = df,
+                             tract.lyr = map_feature()),
+                         message = 'Generating map')
+        }
+        return(map_out)
+    })
+    
+    ## render table visual ----
     
     output$main_tbl <- renderDT({
         if(input$go == 0) return()
@@ -222,17 +241,34 @@ server <- function(input, output, session) {
         
         datatable(df,
                   options = list(columnDefs = list(list(visible = FALSE, targets = show_columns()))))
+        })
+    
+    output$ui_main_vis <- renderUI({
+        if(input$go == 0) return()
+        
+        input$go
+        
+        if(isolate(input$vis_type) == 'map') {
+            leafletOutput('main_map')
+        } else if(isolate(input$vis_type) != 'map') {
+            plotOutput('main_vis')
+        }
+        
+    })
+    
+    ## render map visual ----
+    
+    output$main_map <- renderLeaflet({
+        map()
     })
     
 
 # download data  ----------------------------------------------------------
     
     
-    ## Enable/Disable download button ----
+    ## enable/disable download button ----
     v <- reactiveValues(geog_type = NULL,
                         fips = NULL,
-                        # fips_place = NULL,
-                        # fips_msa = NULL,
                         vis_type = NULL,
                         topic = NULL,
                         var_name = NULL,
@@ -255,13 +291,14 @@ server <- function(input, output, session) {
     
     observe({
         # disable download button if selection changes
-        if(v$go == 0 || (v$geog_type != input$geog_type) || (v$fips != input$fips) || is.null(input$fips)|| (v$vis_type != input$vis_type) ||
+        if(v$go == 0 || (v$geog_type != input$geog_type) || (v$vis_type != input$vis_type) ||
            (v$topic != input$topic) || (v$var_name != input$var_name) ||
            (v$dataset != input$dataset) || (v$dataset_year != input$dataset_year)) {
             disable("download")
         } else if(v$go > 0) {
-            enable("download")  
+            enable("download")
         }
+
     })
     
     output$download <- downloadHandler(
@@ -275,20 +312,6 @@ server <- function(input, output, session) {
         }
     )
     
-    # output$ui_main_vis <- renderUI({
-    #     if(input$go == 0) return()
-    #     
-    #     input$go
-    #     
-    #     if(isolate(input$output_type) != 2) {
-    #         plotOutput('main_vis')
-    #     } else if(isolate(input$output_type) == 2) {
-    #         div('A Map',
-    #             leafletOutput('main_map'))
-    #         
-    #     }
-    # })
-    
     # output$main_vis <- renderPlot({
     #     
     #     ggplot(mpg, aes(x = displ, y = cty, color = class)) +
@@ -296,16 +319,6 @@ server <- function(input, output, session) {
     #         labs(title = 'A Graph')
     #     
     # })
-    
-    # output$main_map <- renderLeaflet({
-    #     
-    #     leaflet() %>%
-    #         addTiles() %>% 
-    #         addMarkers(lng=-122.33781311125064, lat=47.60469023724731)
-    #     
-    # })
-    
-    
     
 }
 
