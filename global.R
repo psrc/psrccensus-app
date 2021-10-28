@@ -1,6 +1,7 @@
 library(shiny)
 library(psrccensus)
 library(DT)
+library(sf)
 library(leaflet)
 library(tidyverse)
 library(odbc)
@@ -10,6 +11,10 @@ library(shinyjs)
 library(openxlsx)
 
 db.table <- 'census.variable_dim'
+
+gdb.nm <- "MSSQL:server=AWS-PROD-SQL\\Sockeye;database=ElmerGeo;trusted_connection=yes"
+spn <-  2285
+tract.layer.name <- "dbo.tract2010_nowater"
 
 db.connect <- function() {
   elmer_connection <- dbConnect(odbc(),
