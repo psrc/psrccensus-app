@@ -68,6 +68,19 @@ server <- function(input, output, session) {
                                choices = c('Graph' = 'graph', 'Map' = 'map'),
                                selected = "graph")
         }
+        
+        if(input$geog_type == 'tract' || input$var_name == 'all') {
+            # update checkbox first then disable
+            updateCheckboxInput(
+                session = session,
+                'trend',
+                label = 'Trend',
+                value = FALSE
+            )
+            disable('trend')
+        } else {
+            enable('trend')
+        }
     })
     
     output$ui_var_name <- renderUI({
@@ -92,10 +105,19 @@ server <- function(input, output, session) {
     output$ui_dataset_year <- renderUI({
         if(is.null(input$dataset)) return(NULL)
         
-        selectInput('dataset_year',
-                    'Year',
-                    choices = dataset_year(),
-                    width = '20rem')
+        if(input$trend == TRUE) {
+            selectInput('dataset_year',
+                        'Year',
+                        choices = dataset_year(),
+                        multiple = TRUE,
+                        width = '20rem')
+        } else {
+            selectInput('dataset_year',
+                        'Year',
+                        choices = dataset_year(),
+                        width = '20rem')
+        }
+        
     })
 
     ## main control reactives ----
@@ -230,6 +252,22 @@ server <- function(input, output, session) {
         return(map_out)
     })
     
+    ### graph ----
+    
+    graph <- eventReactive(input$go, {
+        df <- main_table()
+        if(input$trend == TRUE & input$vis_type == 'graph') {
+            p <- get_time_series(df, input$var_name)
+        }
+
+        return(p)
+    })
+    
+    output$main_vis <- renderPlot({
+
+        graph()
+    })
+    
     ## render table visual ----
     
     output$main_tbl <- renderDT({
@@ -261,6 +299,8 @@ server <- function(input, output, session) {
     output$main_map <- renderLeaflet({
         map()
     })
+    
+
     
 
 # download data  ----------------------------------------------------------
