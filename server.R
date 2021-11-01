@@ -53,6 +53,7 @@ server <- function(input, output, session) {
         input$var_name
         input$geog_type 
         
+        # Visual Type radio buttons
         if(input$var_name != 'all' & input$geog_type == 'tract') {
             updateRadioButtons(session, 
                                'vis_type', 
@@ -61,12 +62,32 @@ server <- function(input, output, session) {
                                selected = "map")
         } else if(input$var_name == 'all') {
             disable("vis_type")
+        } else if(input$trend == TRUE) {
+            updateRadioButtons(session,
+                               'vis_type',
+                               label = 'Visual',
+                               choices = c('Graph' = 'graph'),
+                               selected = "graph")
         } else {
             updateRadioButtons(session, 
                                'vis_type', 
                                label = 'Visual', 
                                choices = c('Graph' = 'graph', 'Map' = 'map'),
                                selected = "graph")
+        }
+        
+        # Trend checkbox
+        if(input$geog_type == 'tract' || input$var_name == 'all') {
+            # update checkbox first then disable
+            updateCheckboxInput(
+                session = session,
+                'trend',
+                label = 'Trend',
+                value = FALSE
+            )
+            disable('trend')
+        } else {
+            enable('trend')
         }
     })
     
@@ -92,10 +113,20 @@ server <- function(input, output, session) {
     output$ui_dataset_year <- renderUI({
         if(is.null(input$dataset)) return(NULL)
         
-        selectInput('dataset_year',
-                    'Year',
-                    choices = dataset_year(),
-                    width = '20rem')
+        if(input$trend == TRUE) {
+            selectInput('dataset_year',
+                        'Year',
+                        choices = dataset_year(),
+                        multiple = TRUE,
+                        selected = dataset_year(),
+                        width = '20rem')
+        } else {
+            selectInput('dataset_year',
+                        'Year',
+                        choices = dataset_year(),
+                        width = '20rem')
+        }
+        
     })
 
     ## main control reactives ----
@@ -142,6 +173,8 @@ server <- function(input, output, session) {
     
     main_table <- eventReactive(input$go, {
         
+        col_names <- c('GEOID', 'name')
+        
         # clean and vectorize fips
         if(!is.null(input$fips)) {
             fips <- unlist(str_split(input$fips, ",\\s"))
@@ -168,7 +201,9 @@ server <- function(input, output, session) {
                                      acs.type = str_to_lower(input$dataset))
             }
             
-
+            recs <- recs %>%
+                select({{col_names}}, label, everything())
+            
         } else if(input$dataset == 'Decennial') {
             incProgress(message = 'Gathering Decennial Census data')
             
@@ -181,6 +216,8 @@ server <- function(input, output, session) {
                                        table_codes = dec_tbl_code,
                                        years = as.numeric(input$dataset_year),
                                        fips = fips)
+            recs <- recs %>%
+                select(str_to_upper(col_names), label, everything())
         }
         
         incProgress(amount = .5, message = 'Data gathered')
@@ -198,10 +235,13 @@ server <- function(input, output, session) {
     
     show_columns <- eventReactive(input$go, {
         # return a vector of column names to show in DT
-        
+        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state')
         df <- main_table()
-        if(input$dataset != 'Decennial') {
-            hide_cols <- c('concept', 'census_geography', 'acs_type', 'year', 'state')
+        
+        if(input$dataset != 'Decennial' & input$trend == FALSE) {
+            target <- which(colnames(df) %in% hide_cols)
+        } else if(input$dataset != 'Decennial' & input$trend == TRUE) {
+            hide_cols <- hide_cols[!(hide_cols %in% c('year'))]
             target <- which(colnames(df) %in% hide_cols)
         } else {
             target <- NULL
@@ -228,6 +268,22 @@ server <- function(input, output, session) {
                          message = 'Generating map')
         }
         return(map_out)
+    })
+    
+    ### graph ----
+    
+    graph <- eventReactive(input$go, {
+        df <- main_table()
+        if(input$trend == TRUE & input$vis_type == 'graph') {
+            p <- get_time_series(df, input$var_name)
+        }
+
+        return(p)
+    })
+    
+    output$main_vis <- renderPlot({
+
+        graph()
     })
     
     ## render table visual ----
@@ -261,6 +317,8 @@ server <- function(input, output, session) {
     output$main_map <- renderLeaflet({
         map()
     })
+    
+
     
 
 # download data  ----------------------------------------------------------
