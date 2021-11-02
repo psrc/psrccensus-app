@@ -277,21 +277,25 @@ server <- function(input, output, session) {
         df <- main_table()
         
         if(input$trend == TRUE & input$vis_type == 'graph') {
-            
+            # timeseries graph
             p <- get_time_series(df, input$var_name)
 
         } else if(input$trend == FALSE & input$vis_type == 'graph') {
-            
-            ifelse(input$dataset != 'Decennial',  x_val <- 'name',  x_val <- 'NAME')
-            ifelse(input$dataset != 'Decennial',  y_val <- 'estimate',  y_val <- 'value')
+            # generic graph
+            if(input$dataset != 'Decennial') {
+                x_val <- 'name'
+                y_val <- 'estimate'
+            } else {
+                x_val <- 'NAME'
+                y_val <- 'value'
+            }
             
             if('Region' %in% unique(df[[x_val]])) {
+                # ensure 'Region' element is last item in graph
                 counties <- c('King County', 'Kitsap County', 'Pierce County', 'Snohomish County', 'Region')
-                
                 if(input$dataset == 'Decennial') {
                     counties <- c(paste0(counties[1:4], ", Washington"), 'Region')
                 }
-                
                 df[[x_val]] <- factor(df[[x_val]], levels = counties)
             } 
            
@@ -299,12 +303,20 @@ server <- function(input, output, session) {
                 geom_col() +
                 scale_y_continuous(labels = label_comma()) +
                 labs(x = NULL,
-                     y = str_to_title(y_val)) +
-                theme(legend.title = element_blank()) 
+                     y = str_to_title(y_val),
+                     title = names(vars[which(vars == input$topic)]),
+                     subtitle = str_replace_all(unique(df$label), '!!', ' > '),
+                     source = paste(input$dataset, ", ", input$dataset_year)
+                     ) +
+                theme(legend.title = element_blank(),
+                      axis.text.x = element_text(angle = 45, vjust = 0.5)) 
             
             if(input$dataset != 'Decennial') {
+                # add errorbar where MOE is available (ACS datasets)
                 p <- p +
-                    geom_errorbar(aes(ymin = estimate + moe, ymax = estimate - moe, width = .2))
+                    geom_errorbar(aes(ymin = estimate + moe, ymax = estimate - moe),
+                                  alpha = .5,
+                                  width = 0.2,)
             }
         }
 
@@ -356,7 +368,7 @@ server <- function(input, output, session) {
     
     ## enable/disable download button ----
     v <- reactiveValues(geog_type = NULL,
-                        fips = NULL,
+                        # fips = NULL,
                         vis_type = NULL,
                         topic = NULL,
                         var_name = NULL,
@@ -368,7 +380,7 @@ server <- function(input, output, session) {
     observeEvent(input$go, {
         # store values in reactive value list after clicking Enter
         v$geog_type <- input$geog_type
-        v$fips <- input$fips
+        # v$fips <- input$fips
         v$vis_type <- input$vis_type
         v$topic <- input$topic
         v$var_name <- input$var_name
@@ -399,14 +411,6 @@ server <- function(input, output, session) {
             write.xlsx(main_table(), file)
         }
     )
-    
-    # output$main_vis <- renderPlot({
-    #     
-    #     ggplot(mpg, aes(x = displ, y = cty, color = class)) +
-    #         geom_point() +
-    #         labs(title = 'A Graph')
-    #     
-    # })
     
 }
 
