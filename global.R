@@ -10,6 +10,7 @@ library(fontawesome)
 library(shinyjs)
 library(openxlsx)
 library(scales)
+# library(plotly)
 
 db.table <- 'census.variable_dim'
 
