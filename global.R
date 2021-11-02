@@ -9,6 +9,7 @@ library(DBI)
 library(fontawesome)
 library(shinyjs)
 library(openxlsx)
+library(scales)
 
 db.table <- 'census.variable_dim'
 

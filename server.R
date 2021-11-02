@@ -273,9 +273,39 @@ server <- function(input, output, session) {
     ### graph ----
     
     graph <- eventReactive(input$go, {
+        
         df <- main_table()
+        
         if(input$trend == TRUE & input$vis_type == 'graph') {
+            
             p <- get_time_series(df, input$var_name)
+
+        } else if(input$trend == FALSE & input$vis_type == 'graph') {
+            
+            ifelse(input$dataset != 'Decennial',  x_val <- 'name',  x_val <- 'NAME')
+            ifelse(input$dataset != 'Decennial',  y_val <- 'estimate',  y_val <- 'value')
+            
+            if('Region' %in% unique(df[[x_val]])) {
+                counties <- c('King County', 'Kitsap County', 'Pierce County', 'Snohomish County', 'Region')
+                
+                if(input$dataset == 'Decennial') {
+                    counties <- c(paste0(counties[1:4], ", Washington"), 'Region')
+                }
+                
+                df[[x_val]] <- factor(df[[x_val]], levels = counties)
+            } 
+           
+            p <- ggplot(df, aes_string(x = x_val, y = y_val, fill = x_val)) +
+                geom_col() +
+                scale_y_continuous(labels = label_comma()) +
+                labs(x = NULL,
+                     y = str_to_title(y_val)) +
+                theme(legend.title = element_blank()) 
+            
+            if(input$dataset != 'Decennial') {
+                p <- p +
+                    geom_errorbar(aes(ymin = estimate + moe, ymax = estimate - moe, width = .2))
+            }
         }
 
         return(p)
