@@ -62,7 +62,7 @@ server <- function(input, output, session) {
                                selected = "map")
         } else if(input$var_name == 'all') {
             disable("vis_type")
-        } else if(input$trend == TRUE) {
+        } else if(input$trend == TRUE | input$geog_type != 'tract') {
             updateRadioButtons(session,
                                'vis_type',
                                label = 'Visual',
@@ -128,6 +128,19 @@ server <- function(input, output, session) {
         }
         
     })
+    
+    output$ui_main_vis <- renderUI({
+        if(input$go == 0) return()
+        
+        input$go
+        
+        if(isolate(input$vis_type) == 'map') {
+            leafletOutput('main_map')
+        } else if(isolate(input$vis_type) != 'map') {
+            plotOutput('main_vis')
+        }
+        
+    })
 
     ## main control reactives ----
     
@@ -171,6 +184,8 @@ server <- function(input, output, session) {
 
     ## reactives ----
     
+    ### table ----
+    
     main_table <- eventReactive(input$go, {
         
         col_names <- c('GEOID', 'name')
@@ -202,7 +217,7 @@ server <- function(input, output, session) {
             }
             
             recs <- recs %>%
-                select({{col_names}}, label, everything())
+                select({{col_names}}, .data$label, everything())
             
         } else if(input$dataset == 'Decennial') {
             incProgress(message = 'Gathering Decennial Census data')
@@ -217,7 +232,7 @@ server <- function(input, output, session) {
                                        years = as.numeric(input$dataset_year),
                                        fips = fips)
             recs <- recs %>%
-                select(str_to_upper(col_names), label, everything())
+                select(str_to_upper(col_names), .data$label, everything())
         }
         
         incProgress(amount = .5, message = 'Data gathered')
@@ -243,8 +258,9 @@ server <- function(input, output, session) {
         } else if(input$dataset != 'Decennial' & input$trend == TRUE) {
             hide_cols <- hide_cols[!(hide_cols %in% c('year'))]
             target <- which(colnames(df) %in% hide_cols)
-        } else {
-            target <- NULL
+        } else if(input$dataset == 'Decennial') {
+            target <- which(colnames(df) %in% hide_cols)
+            # target <- NULL
         }
         
         return(target)
@@ -276,11 +292,11 @@ server <- function(input, output, session) {
         
         df <- main_table()
         
-        if(input$trend == TRUE & input$vis_type == 'graph') {
+        if(input$trend == TRUE & input$vis_type == 'graph' & input$var_name != 'all') {
             # timeseries graph
             p <- get_time_series(df, input$var_name)
 
-        } else if(input$trend == FALSE & input$vis_type == 'graph') {
+        } else if(input$trend == FALSE & input$vis_type == 'graph' & input$var_name != 'all') {
             # generic graph
             if(input$dataset != 'Decennial') {
                 x_val <- 'name'
@@ -299,32 +315,40 @@ server <- function(input, output, session) {
                 df[[x_val]] <- factor(df[[x_val]], levels = counties)
             } 
            
+            geog_choices = c('Counties & Region' = 'county',
+                             'Tract' = 'tract',
+                             'Metropolitan Statistical Area (MSA)' = 'msa',
+                             'Place' = 'place')
+            
             p <- ggplot(df, aes_string(x = x_val, y = y_val, fill = x_val)) +
                 geom_col() +
                 scale_y_continuous(labels = label_comma()) +
-                labs(x = NULL,
+                labs(x = names(geog_choices[which(geog_choices == input$geog_type)]),
                      y = str_to_title(y_val),
                      title = names(vars[which(vars == input$topic)]),
                      subtitle = str_replace_all(unique(df$label), '!!', ' > '),
-                     source = paste(input$dataset, ", ", input$dataset_year)
+                     caption = paste0('Source: ', input$dataset, ", ", input$dataset_year)
                      ) +
                 theme(legend.title = element_blank(),
-                      axis.text.x = element_text(angle = 45, vjust = 0.5)) 
+                      axis.text.x = element_blank(),
+                      axis.ticks.x = element_blank()
+                      ) 
             
             if(input$dataset != 'Decennial') {
                 # add errorbar where MOE is available (ACS datasets)
                 p <- p +
                     geom_errorbar(aes(ymin = estimate + moe, ymax = estimate - moe),
                                   alpha = .5,
-                                  width = 0.2,)
+                                  width = 0.2)
             }
         }
 
         return(p)
     })
     
+    ## render plot visual ----
+    
     output$main_vis <- renderPlot({
-
         graph()
     })
     
@@ -337,22 +361,25 @@ server <- function(input, output, session) {
         withProgress(df <- main_table(),
                      detail = 'This may take a while...')
         
-        datatable(df,
-                  options = list(columnDefs = list(list(visible = FALSE, targets = show_columns()))))
-        })
-    
-    output$ui_main_vis <- renderUI({
-        if(input$go == 0) return()
-        
-        input$go
-        
-        if(isolate(input$vis_type) == 'map') {
-            leafletOutput('main_map')
-        } else if(isolate(input$vis_type) != 'map') {
-            plotOutput('main_vis')
+        col_names <- c()
+        for(i in 1:length(colnames(df))) {
+            if(colnames(df)[i] %in% c('GEOID', 'moe')) {
+                e <- str_to_upper(colnames(df)[i])
+            } else if(colnames(df)[i] %in% show_columns()){
+                e <- colnames(df)[i]
+            } else {
+                e <- str_to_title(colnames(df)[i])
+            }
+            ifelse(is.null(col_names), col_names <- e, col_names <- c(col_names, e))
         }
         
-    })
+        datatable(df,
+                  colnames = col_names,
+                  options = list(columnDefs = list(list(visible = FALSE, targets = show_columns()))),
+                  extensions = 'Responsive')
+        })
+    
+ 
     
     ## render map visual ----
     
