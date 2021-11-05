@@ -14,7 +14,8 @@ library(scales)
 
 db.table <- 'census.variable_dim'
 
-gdb.nm <- "MSSQL:server=AWS-PROD-SQL\\Sockeye;database=ElmerGeo;trusted_connection=yes"
+gdb.nm <- "MSSQL:server=AWS-PROD-SQL\\Sockeye;database=ElmerGeo;uid=Sys.getenv('userid');pwd=Sys.getenv('pwd');"
+
 spn <-  2285
 tract.layer.name <- "dbo.tract2010_nowater"
 
