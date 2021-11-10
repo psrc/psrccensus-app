@@ -269,10 +269,12 @@ server <- function(input, output, session) {
     ### map ----
     
     map_feature <- eventReactive(input$go, {
-        if(input$geog_type == 'tract') {
-            withProgress(feature <- st_read(gdb.nm, tract.layer.name, crs = spn),
-                        message = 'Reading in tract feature') 
-        }
+        
+        layer <- switch(input$geog_type,
+                        'tract' = "tract2010_nowater/FeatureServer/0/query?where=0=0&outFields=*&f=pgeojson")
+        
+        withProgress(feature <- st_read(paste0(arc.root, layer)), message = 'Reading in spatial feature') 
+
         return(feature)
     })
     

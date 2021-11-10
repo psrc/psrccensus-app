@@ -14,9 +14,7 @@ library(scales)
 
 db.table <- 'census.variable_dim'
 
-gdb.nm <- "MSSQL:server=AWS-PROD-SQL\\Sockeye;database=ElmerGeo;trusted_connection=yes"
-spn <-  2285
-tract.layer.name <- "dbo.tract2010_nowater"
+arc.root <- "https://services6.arcgis.com/GWxg6t7KXELn1thE/arcgis/rest/services/" 
 
 db.connect <- function() {
   elmer_connection <- dbConnect(odbc(),
