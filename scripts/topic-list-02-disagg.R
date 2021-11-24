@@ -80,3 +80,5 @@ ac.title.univ <- bind_rows(a.title.univ, c.title.univ)
 
 df <- new.df %>% 
   left_join(ac.title.univ, by = 'table_code')
+
+write.csv(df, here('data', 'topic-list.csv'))
