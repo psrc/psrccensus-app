@@ -3,12 +3,12 @@ server <- function(input, output, session) {
 
 # main controls -----------------------------------------------------------
     
-    updateSelectizeInput(
-        session, 
-        'table', 
-        server = TRUE,
-        choices = vars
-    )
+    # updateSelectizeInput(
+    #     session, 
+    #     'table', 
+    #     server = TRUE,
+    #     choices = vars
+    # )
     
     output$ui_fips <- renderUI({
         if(input$geog_type == 'place') {
@@ -91,6 +91,14 @@ server <- function(input, output, session) {
         }
     })
     
+    output$ui_table <- renderUI({
+        if(is.null(input$topic)) return(NULL)
+        
+        selectInput('table',
+                    'Table',
+                    choices = table_names())
+    })
+    
     output$ui_var_name <- renderUI({
         if(is.null(input$table)) return(NULL)
         
@@ -143,6 +151,19 @@ server <- function(input, output, session) {
     })
 
     ## main control reactives ----
+
+    
+    table_names <- reactive({
+        # populate table dropdown
+        if(is.null(input$topic)) return(NULL)
+        
+        df <- topic.df %>% 
+            filter(tags == input$topic) 
+        
+        tables <- unique(df$table_code)
+        
+        return(vars[vars %in% tables])
+    })
     
     var_names <- reactive({
         # populate variable dropdown

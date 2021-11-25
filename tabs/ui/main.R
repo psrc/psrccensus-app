@@ -22,10 +22,14 @@ input.vis <- radioButtons('vis_type',
 input.trend <- checkboxInput('trend',
                              label = 'Trend')
 
-input.table <- selectizeInput('table',
-                              label = 'Table',
-                              choices = NULL,
-                              options = list(placeholder = 'Type keyword(s) or code and select'))
+input.topic <- selectInput('topic', 
+                           'Select Topic', 
+                           choices = unique(topic.df$tags))
+
+# input.table <- selectizeInput('table',
+#                               label = 'Table',
+#                               choices = NULL,
+#                               options = list(placeholder = 'Type keyword(s) or code and select'))
 
 
 # main control ------------------------------------------------------------
@@ -51,8 +55,10 @@ main.control <- fluidRow(
                 input.trend)
           ),
           div(class = 'box',
-              selectInput('topic', 'Select Topic', choices = c('a', 'b', 'c')),
-              input.table
+              input.topic,
+              uiOutput('ui_table')
+              # selectInput('topic', 'Select Topic', choices = c('a', 'b', 'c')),
+              # input.table
           ),
           div(class = 'box',
               uiOutput('ui_var_name'),
