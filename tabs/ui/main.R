@@ -22,16 +22,20 @@ input.vis <- radioButtons('vis_type',
 input.trend <- checkboxInput('trend',
                              label = 'Trend')
 
-input.topic <- selectizeInput('topic',
-                              label = 'Topic',
-                              choices = NULL,
-                              options = list(placeholder = 'Type keyword(s) or code and select'))
+input.topic <- selectInput('topic', 
+                           'Select Topic', 
+                           choices = unique(topic.df$tags))
+
+# input.table <- selectizeInput('table',
+#                               label = 'Table',
+#                               choices = NULL,
+#                               options = list(placeholder = 'Type keyword(s) or code and select'))
 
 
 # main control ------------------------------------------------------------
 
 
-# table topic field would come from unique values of concept.
+# table field would come from unique values of concept.
 # Variable name from variable_description. 
 # Data Source from census_product.
 # Year from census_year.
@@ -51,14 +55,15 @@ main.control <- fluidRow(
                 input.trend)
           ),
           div(class = 'box',
-            div(
               input.topic,
-              uiOutput('ui_var_name')
-            ),
-            div(
+              uiOutput('ui_table')
+              # selectInput('topic', 'Select Topic', choices = c('a', 'b', 'c')),
+              # input.table
+          ),
+          div(class = 'box',
+              uiOutput('ui_var_name'),
               uiOutput('ui_dataset'),
               uiOutput('ui_dataset_year')
-            )
           ),
           div(downloadButton("download", "Download Data"),
               actionButton("go", "Enter"))

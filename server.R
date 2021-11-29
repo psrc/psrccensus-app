@@ -3,12 +3,12 @@ server <- function(input, output, session) {
 
 # main controls -----------------------------------------------------------
     
-    updateSelectizeInput(
-        session, 
-        'topic', 
-        server = TRUE,
-        choices = vars
-    )
+    # updateSelectizeInput(
+    #     session, 
+    #     'table', 
+    #     server = TRUE,
+    #     choices = vars
+    # )
     
     output$ui_fips <- renderUI({
         if(input$geog_type == 'place') {
@@ -91,13 +91,21 @@ server <- function(input, output, session) {
         }
     })
     
-    output$ui_var_name <- renderUI({
+    output$ui_table <- renderUI({
         if(is.null(input$topic)) return(NULL)
+        
+        selectInput('table',
+                    'Table',
+                    choices = table_names())
+    })
+    
+    output$ui_var_name <- renderUI({
+        if(is.null(input$table)) return(NULL)
         
         selectInput('var_name',
                     'Variable',
-                    choices = c('All Variables' = 'all', var_names())
-                    )
+                    choices = c('All Variables' = 'all', var_names()),
+                    width = '20rem')
         
     })
     
@@ -143,13 +151,26 @@ server <- function(input, output, session) {
     })
 
     ## main control reactives ----
+
+    
+    table_names <- reactive({
+        # populate table dropdown
+        if(is.null(input$topic)) return(NULL)
+        
+        df <- topic.df %>% 
+            filter(tags == input$topic) 
+        
+        tables <- unique(df$table_code)
+        
+        return(vars[vars %in% tables])
+    })
     
     var_names <- reactive({
         # populate variable dropdown
-        if(is.null(input$topic)) return(NULL)
+        if(is.null(input$table)) return(NULL)
         
         t <- var.df %>% 
-            filter(.data$census_table_code == input$topic) 
+            filter(.data$census_table_code == input$table) 
        
         t.dist <- t %>% 
             select(.data$variable_description, .data$name) %>% 
@@ -165,7 +186,7 @@ server <- function(input, output, session) {
         if(is.null(input$var_name)) return(NULL)
      
         t <- var.df %>% 
-            filter(.data$census_table_code == input$topic)
+            filter(.data$census_table_code == input$table)
         
         sort(unique(t$census_product))
     })
@@ -176,7 +197,7 @@ server <- function(input, output, session) {
         if(is.null(input$dataset)) return(NULL)
 
         t <- var.df %>% 
-            filter(.data$census_table_code == input$topic & .data$census_product == input$dataset) 
+            filter(.data$census_table_code == input$table & .data$census_product == input$dataset) 
         
         sort(unique(t$census_year))
     })
@@ -204,13 +225,13 @@ server <- function(input, output, session) {
             if(input$geog_type == 'place') {
                 # psrccensus get_acs_recs() doesn't filter place geogs
                 recs <- get_acs_recs(geography = input$geog_type,
-                                     table.names = input$topic,
+                                     table.names = input$table,
                                      years = as.numeric(input$dataset_year),
                                      acs.type = str_to_lower(input$dataset)) %>% 
                     filter(GEOID %in% fips)
             } else {
                 recs <- get_acs_recs(geography = input$geog_type,
-                                     table.names = input$topic,
+                                     table.names = input$table,
                                      years = as.numeric(input$dataset_year),
                                      FIPS = fips,
                                      acs.type = str_to_lower(input$dataset))
@@ -224,7 +245,7 @@ server <- function(input, output, session) {
             
             # find the padded table code for Decennial tables 
             dec_tbl_code <- var.df.dist %>% 
-                filter(.data$census_table_code == input$topic) %>% 
+                filter(.data$census_table_code == input$table) %>% 
                 pull(.data$census_table_code_pad)
             
             recs <- get_decennial_recs(geography = input$geog_type,
@@ -327,7 +348,7 @@ server <- function(input, output, session) {
                 scale_y_continuous(labels = label_comma()) +
                 labs(x = names(geog_choices[which(geog_choices == input$geog_type)]),
                      y = str_to_title(y_val),
-                     title = names(vars[which(vars == input$topic)]),
+                     title = names(vars[which(vars == input$table)]),
                      subtitle = str_replace_all(unique(df$label), '!!', ' > '),
                      caption = paste0('Source: ', input$dataset, ", ", input$dataset_year)
                      ) +
@@ -399,7 +420,7 @@ server <- function(input, output, session) {
     v <- reactiveValues(geog_type = NULL,
                         # fips = NULL,
                         vis_type = NULL,
-                        topic = NULL,
+                        table = NULL,
                         var_name = NULL,
                         dataset = NULL,
                         dataset_year = NULL,
@@ -411,7 +432,7 @@ server <- function(input, output, session) {
         v$geog_type <- input$geog_type
         # v$fips <- input$fips
         v$vis_type <- input$vis_type
-        v$topic <- input$topic
+        v$table <- input$table
         v$var_name <- input$var_name
         v$dataset <- input$dataset
         v$dataset_year <- input$dataset_year
@@ -421,7 +442,7 @@ server <- function(input, output, session) {
     observe({
         # disable download button if selection changes
         if(v$go == 0 || (v$geog_type != input$geog_type) || (v$vis_type != input$vis_type) ||
-           (v$topic != input$topic) || (v$var_name != input$var_name) ||
+           (v$table != input$table) || (v$var_name != input$var_name) ||
            (v$dataset != input$dataset) || (v$dataset_year != input$dataset_year)) {
             disable("download")
         } else if(v$go > 0) {
@@ -434,7 +455,7 @@ server <- function(input, output, session) {
         # download file as excel
 
         filename = function() {
-            paste0(paste(input$dataset, input$topic, input$dataset_year, "by", input$geog_type, sep = '_'), ".xlsx")
+            paste0(paste(input$dataset, input$table, input$dataset_year, "by", input$geog_type, sep = '_'), ".xlsx")
         },
         content = function(file) {
             write.xlsx(main_table(), file)

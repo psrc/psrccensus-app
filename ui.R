@@ -5,7 +5,7 @@ ui  <- fluidPage(
         tags$script(src = "js-script.js")
         ),
     navbarPage(
-        title = 'PSRC Census Tool',
+        title = 'PSRC Census Explorer',
         
         # tabs --------------------------------------------------------------------
         main,
