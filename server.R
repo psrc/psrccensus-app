@@ -3,12 +3,6 @@ server <- function(input, output, session) {
 
 # main controls -----------------------------------------------------------
     
-    # updateSelectizeInput(
-    #     session, 
-    #     'table', 
-    #     server = TRUE,
-    #     choices = vars
-    # )
     
     output$ui_fips <- renderUI({
         if(input$geog_type == 'place') {
@@ -207,6 +201,14 @@ server <- function(input, output, session) {
     
     ### table ----
     
+    table_universe <- eventReactive(input$go, {
+        df <- topic.df %>% 
+            filter(table_code == input$table) %>% 
+            distinct(title, universe)
+        
+        return(list(title = str_to_title(df$title), universe = df$universe))
+    })
+    
     main_table <- eventReactive(input$go, {
         
         col_names <- c('GEOID', 'name')
@@ -396,7 +398,10 @@ server <- function(input, output, session) {
             ifelse(is.null(col_names), col_names <- e, col_names <- c(col_names, e))
         }
         
+        tbl.u <- table_universe()
+        
         datatable(df,
+                  caption = HTML(paste0('Table: ', isolate(input$table), ' ', tbl.u$title, '<br/> Universe: ', tbl.u$universe)),
                   colnames = col_names,
                   options = list(columnDefs = list(list(visible = FALSE, targets = show_columns()))),
                   extensions = 'Responsive')
