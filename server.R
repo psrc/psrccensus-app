@@ -153,7 +153,7 @@ server <- function(input, output, session) {
         
         df <- topic.df %>% 
             filter(tags == input$topic) 
-        
+
         tables <- unique(df$table_code)
         
         return(vars[vars %in% tables])

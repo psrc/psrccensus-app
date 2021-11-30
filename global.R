@@ -42,7 +42,8 @@ read.dt <- function(astring, type =c('table_name', 'sql_query')) {
 }
 
 var.df <- read.dt(db.table, 'table_name')
-topic.df <- read.csv(here('data', 'topic-list.csv'))
+topic.df <- read.csv(here('data', 'topic-list.csv')) %>% 
+  filter(!str_detect(title, 'MEDIAN') & !str_detect(title, '.*AVERAGE.*'))
 
 # source tab files
 tab_files <- list.files(path = "tabs", full.names = T, recursive = T)
