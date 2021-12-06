@@ -204,6 +204,7 @@ server <- function(input, output, session) {
     table_universe <- eventReactive(input$go, {
         df <- topic.df %>% 
             filter(table_code == input$table) %>% 
+            mutate(title = str_replace_all(title, 'IN\\s\\d{4}\\s', "")) %>% 
             distinct(title, universe)
         
         return(list(title = str_to_title(df$title), universe = df$universe))

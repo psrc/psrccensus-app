@@ -41,9 +41,11 @@ read.dt <- function(astring, type =c('table_name', 'sql_query')) {
   return(dtelm)
 }
 
-var.df <- read.dt(db.table, 'table_name')
-topic.df <- read.csv(here('data', 'topic-list.csv')) %>% 
-  filter(!str_detect(title, 'MEDIAN') & !str_detect(title, '.*AVERAGE.*'))
+var.df <- read.dt(db.table, 'table_name') %>% 
+  mutate(concept_original = concept) %>% 
+  mutate(concept = str_replace_all(concept, 'IN\\s\\d{4}\\s', ""))
+
+topic.df <- read.csv(here('data', 'topic-list.csv'))
 
 # source tab files
 tab_files <- list.files(path = "tabs", full.names = T, recursive = T)
