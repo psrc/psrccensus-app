@@ -26,11 +26,6 @@ input.topic <- selectInput('topic',
                            'Select Topic', 
                            choices = unique(topic.df$tags))
 
-# input.table <- selectizeInput('table',
-#                               label = 'Table',
-#                               choices = NULL,
-#                               options = list(placeholder = 'Type keyword(s) or code and select'))
-
 
 # main control ------------------------------------------------------------
 
@@ -57,11 +52,10 @@ main.control <- fluidRow(
           div(class = 'box',
               input.topic,
               uiOutput('ui_table')
-              # selectInput('topic', 'Select Topic', choices = c('a', 'b', 'c')),
-              # input.table
           ),
           div(class = 'box',
-              uiOutput('ui_var_name'),
+              # uiOutput('ui_var_name'),
+              div(class = 'variable', uiOutput('ui_var_name'), uiOutput('ui_ungroup_vars')),
               uiOutput('ui_dataset'),
               uiOutput('ui_dataset_year')
           ),

@@ -83,6 +83,42 @@ server <- function(input, output, session) {
         } else {
             enable('trend')
         }
+        
+        #### variable grouping and un-grouping ----
+        vars.group <- unique(var_group$table_code)
+        if(input$table %in% vars.group & input$var_ungroup == TRUE) {
+            t <- var.df %>% 
+                filter(.data$census_table_code == input$table) 
+            
+            t.dist <- t %>% 
+                select(.data$variable_description, .data$name) %>% 
+                distinct()
+            
+            vars <- t.dist$name
+            names(vars) <- t.dist$variable_description
+            
+            updateSelectInput(
+                session = session,
+                'var_name',
+                choices = c('All Variables' = 'all', vars)
+            )
+        } else if(input$table %in% vars.group & input$var_ungroup == FALSE) {
+            t <- var_group %>% 
+                filter(.data$table_code == input$table)
+            vars <- unique(t$grouping)
+            
+            updateSelectInput(
+                session = session,
+                'var_name',
+                choices = c('All Variables' = 'all', vars)
+            )
+        } else {
+            updateSelectInput(
+                session = session,
+                'var_name',
+                choices = c('All Variables' = 'all', var_names())
+            ) 
+        }
     })
     
     output$ui_table <- renderUI({
@@ -143,6 +179,20 @@ server <- function(input, output, session) {
         }
         
     })
+    
+    output$ui_ungroup_vars <- renderUI({
+        if(is.null(input$table)) return(NULL)
+        
+        # display checkbox to un-group variables if topic is found in variables_groupings.csv
+        if(input$table %in% unique(var_group$table_code)) {
+            checkboxInput('var_ungroup',
+                          'Ungroup Variables',
+                          width = '75%')
+        } else {
+            NULL
+        }
+        
+    })
 
     ## main control reactives ----
 
@@ -160,16 +210,17 @@ server <- function(input, output, session) {
     })
     
     var_names <- reactive({
-        # populate variable dropdown
+        # populate initial variable dropdown
+        # see observe({}) for updating var_names with grouped variables
         if(is.null(input$table)) return(NULL)
         
-        t <- var.df %>% 
-            filter(.data$census_table_code == input$table) 
-       
-        t.dist <- t %>% 
-            select(.data$variable_description, .data$name) %>% 
+        t <- var.df %>%
+            filter(.data$census_table_code == input$table)
+
+        t.dist <- t %>%
+            select(.data$variable_description, .data$name) %>%
             distinct()
-        
+
         vars <- t.dist$name
         names(vars) <- t.dist$variable_description
         return(vars)
