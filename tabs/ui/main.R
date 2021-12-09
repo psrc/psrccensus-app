@@ -12,15 +12,18 @@ input.geog <- selectInput('geog_type',
                                       'MSA' = 'msa',
                                       'Place' = 'place'
                                       ),
-                          selected = 1)
+                          selected = 1,
+                          width = '20rem')
 
 input.vis <- radioButtons('vis_type',
                           label = 'Visual',
                           choices = c('Graph' = 'graph',
-                                      'Map' = 'map'))
+                                      'Map' = 'map'),
+                          width = '10%')
 
 input.trend <- checkboxInput('trend',
-                             label = 'Trend')
+                             label = 'Trend',
+                             width = '10%')
 
 input.topic <- selectInput('topic', 
                            'Select Topic', 
@@ -54,11 +57,16 @@ main.control <- fluidRow(
               uiOutput('ui_table')
           ),
           div(class = 'box',
-              # uiOutput('ui_var_name'),
-              div(class = 'variable', uiOutput('ui_var_name'), uiOutput('ui_ungroup_vars')),
-              uiOutput('ui_dataset'),
-              uiOutput('ui_dataset_year')
+              uiOutput('ui_var_name'),
+              uiOutput('ui_var_group_option'),
+              uiOutput('ui_ungroup_vars')
+              # div(class = 'variable', uiOutput('ui_var_name'), uiOutput('ui_ungroup_vars'))#,
+              # uiOutput('ui_dataset'),
+              # uiOutput('ui_dataset_year')
           ),
+          div(class = 'box',
+            uiOutput('ui_dataset'),
+            uiOutput('ui_dataset_year')),
           div(downloadButton("download", "Download Data"),
               actionButton("go", "Enter"))
       ), # end .main-control

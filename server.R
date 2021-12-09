@@ -87,20 +87,10 @@ server <- function(input, output, session) {
         #### variable grouping and un-grouping ----
         vars.group <- unique(var_group$table_code)
         if(input$table %in% vars.group & input$var_ungroup == TRUE) {
-            t <- var.df %>% 
-                filter(.data$census_table_code == input$table) 
-            
-            t.dist <- t %>% 
-                select(.data$variable_description, .data$name) %>% 
-                distinct()
-            
-            vars <- t.dist$name
-            names(vars) <- t.dist$variable_description
-            
             updateSelectInput(
                 session = session,
                 'var_name',
-                choices = c('All Variables' = 'all', vars)
+                choices = c('All Variables' = 'all', var_names())
             )
         } else if(input$table %in% vars.group & input$var_ungroup == FALSE) {
             t <- var_group %>% 
@@ -121,6 +111,38 @@ server <- function(input, output, session) {
         }
     })
     
+    output$ui_ungroup_vars <- renderUI({
+        if(is.null(input$table)) return(NULL)
+
+        # display checkbox to un-group variables if topic is found in variables_groupings.csv
+        if(input$table %in% unique(var_group$table_code)) {
+            checkboxInput('var_ungroup',
+                          'Ungroup Variables',
+                          width = '75%')
+        } else {
+            NULL
+        }
+
+    })
+
+    output$ui_var_group_option <- renderUI({
+        if(is.null(input$table)) return(NULL)
+
+        # display if topic is found in variables_groupings.csv
+        if(input$table %in% unique(var_group$table_code)) {
+            t <- var_group %>%
+                filter(table_code == input$table)
+            group_options <- unique(t$group_name)
+            selectInput('var_group_option',
+                        'Grouping Option',
+                        choices = group_options,
+                        width = '25rem')
+        } else {
+            NULL
+        }
+
+    })
+    
     output$ui_table <- renderUI({
         if(is.null(input$topic)) return(NULL)
         
@@ -135,7 +157,7 @@ server <- function(input, output, session) {
         selectInput('var_name',
                     'Variable',
                     choices = c('All Variables' = 'all', var_names()),
-                    width = '20rem')
+                    width = '25rem')
         
     })
     
@@ -180,19 +202,6 @@ server <- function(input, output, session) {
         
     })
     
-    output$ui_ungroup_vars <- renderUI({
-        if(is.null(input$table)) return(NULL)
-        
-        # display checkbox to un-group variables if topic is found in variables_groupings.csv
-        if(input$table %in% unique(var_group$table_code)) {
-            checkboxInput('var_ungroup',
-                          'Ungroup Variables',
-                          width = '75%')
-        } else {
-            NULL
-        }
-        
-    })
 
     ## main control reactives ----
 
@@ -215,14 +224,12 @@ server <- function(input, output, session) {
         if(is.null(input$table)) return(NULL)
         
         t <- var.df %>%
-            filter(.data$census_table_code == input$table)
-
-        t.dist <- t %>%
+            filter(.data$census_table_code == input$table) %>%
             select(.data$variable_description, .data$name) %>%
             distinct()
 
-        vars <- t.dist$name
-        names(vars) <- t.dist$variable_description
+        vars <- t$name
+        names(vars) <- t$variable_description
         return(vars)
     })
     
