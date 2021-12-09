@@ -92,9 +92,12 @@ server <- function(input, output, session) {
                 'var_name',
                 choices = c('All Variables' = 'all', var_names())
             )
+            
+            hide('var_group_option')
+            
         } else if(input$table %in% vars.group & input$var_ungroup == FALSE) {
             t <- var_group %>% 
-                filter(.data$table_code == input$table)
+                filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
             vars <- unique(t$grouping)
             
             updateSelectInput(
@@ -102,12 +105,17 @@ server <- function(input, output, session) {
                 'var_name',
                 choices = c('All Variables' = 'all', vars)
             )
+            
+            show('var_group_option')
+            
         } else {
             updateSelectInput(
                 session = session,
                 'var_name',
                 choices = c('All Variables' = 'all', var_names())
-            ) 
+            )
+            
+            show('var_group_option')
         }
     })
     
