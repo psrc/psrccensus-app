@@ -84,39 +84,6 @@ server <- function(input, output, session) {
             enable('trend')
         }
         
-        #### variable grouping and un-grouping ----
-        vars.group <- unique(var_group$table_code)
-        if(input$table %in% vars.group & input$var_ungroup == TRUE) {
-            updateSelectInput(
-                session = session,
-                'var_name',
-                choices = c('All Variables' = 'all', var_names())
-            )
-            
-            hide('var_group_option')
-            
-        } else if(input$table %in% vars.group & input$var_ungroup == FALSE) {
-            t <- var_group %>% 
-                filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
-            vars <- unique(t$grouping)
-            
-            updateSelectInput(
-                session = session,
-                'var_name',
-                choices = c('All Variables' = 'all', vars)
-            )
-            
-            show('var_group_option')
-            
-        } else {
-            updateSelectInput(
-                session = session,
-                'var_name',
-                choices = c('All Variables' = 'all', var_names())
-            )
-            
-            show('var_group_option')
-        }
     })
     
     output$ui_ungroup_vars <- renderUI({
@@ -162,10 +129,36 @@ server <- function(input, output, session) {
     output$ui_var_name <- renderUI({
         if(is.null(input$table)) return(NULL)
         
-        selectInput('var_name',
-                    'Variable',
-                    choices = c('All Variables' = 'all', var_names()),
-                    width = '25rem')
+        # selectInput('var_name',
+        #             'Variable',
+        #             choices = c('All Variables' = 'all', var_names()),
+        #             width = '25rem')        
+        
+        vars.group <- unique(var_group$table_code)
+        
+        if(input$table %in% vars.group & input$var_ungroup == TRUE) {
+            selectInput('var_name',
+                        'Variable',
+                        choices = c('All Variables' = 'all', var_names())
+            )
+        } else if (input$table %in% vars.group & input$var_ungroup == FALSE) {
+            t <- var_group %>%
+                filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
+            
+            vars <- unique(t$grouping)
+            names(vars) <- vars
+            
+            selectInput('var_name',
+                        'Variable',
+                        choices = c('All Variables' = 'all', vars)
+            )
+        } else {
+            selectInput('var_name',
+                        'Variable',
+                        choices = c('All Variables' = 'all', var_names()),
+                        width = '25rem')
+        }
+        
         
     })
     
@@ -327,10 +320,19 @@ server <- function(input, output, session) {
         
         incProgress(amount = .5, message = 'Data gathered')
         
-        # filter for variable
-        if(input$var_name != 'all') {
+        #### table variables grouped ----
+        if(input$table %in% unique(var_group$table_code) & input$var_ungroup == FALSE) {
+            recs <- group_recs(recs, input$var_group_option) # removed variable, GEOID, label column
+        }
+        
+        #### filter for variable ----
+        if(input$var_name != 'all' & !(input$table %in% unique(var_group$table_code)) |
+           (input$var_name != 'all' & input$var_ungroup == TRUE)) {
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
+        } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code))) {
+            recs <- recs %>%
+                filter(grouping == input$var_name)
         }
         
         incProgress(amount = .4, message = 'Ready to render data')
@@ -338,8 +340,8 @@ server <- function(input, output, session) {
         return(recs)
     })
     
-    show_columns <- eventReactive(input$go, {
-        # return a vector of column names to show in DT
+    hide_columns <- eventReactive(input$go, {
+        # return a vector of column names to hide in DT
         hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state')
         df <- main_table()
         
@@ -350,7 +352,6 @@ server <- function(input, output, session) {
             target <- which(colnames(df) %in% hide_cols)
         } else if(input$dataset == 'Decennial') {
             target <- which(colnames(df) %in% hide_cols)
-            # target <- NULL
         }
         
         return(target)
@@ -453,11 +454,12 @@ server <- function(input, output, session) {
         withProgress(df <- main_table(),
                      detail = 'This may take a while...')
         
+        # clean column names
         col_names <- c()
         for(i in 1:length(colnames(df))) {
             if(colnames(df)[i] %in% c('GEOID', 'moe')) {
                 e <- str_to_upper(colnames(df)[i])
-            } else if(colnames(df)[i] %in% show_columns()){
+            } else if(colnames(df)[i] %in% hide_columns()){
                 e <- colnames(df)[i]
             } else {
                 e <- str_to_title(colnames(df)[i])
@@ -470,7 +472,7 @@ server <- function(input, output, session) {
         datatable(df,
                   caption = HTML(paste0('Table: ', isolate(input$table), ' ', tbl.u$title, '<br/> Universe: ', tbl.u$universe)),
                   colnames = col_names,
-                  options = list(columnDefs = list(list(visible = FALSE, targets = show_columns()))),
+                  options = list(columnDefs = list(list(visible = FALSE, targets = hide_columns()))),
                   extensions = 'Responsive')
         })
     

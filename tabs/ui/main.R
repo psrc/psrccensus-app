@@ -60,9 +60,6 @@ main.control <- fluidRow(
               uiOutput('ui_var_name'),
               uiOutput('ui_var_group_option'),
               uiOutput('ui_ungroup_vars')
-              # div(class = 'variable', uiOutput('ui_var_name'), uiOutput('ui_ungroup_vars'))#,
-              # uiOutput('ui_dataset'),
-              # uiOutput('ui_dataset_year')
           ),
           div(class = 'box',
             uiOutput('ui_dataset'),
