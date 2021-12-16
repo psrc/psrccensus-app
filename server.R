@@ -128,6 +128,7 @@ server <- function(input, output, session) {
     
     output$ui_var_name <- renderUI({
         if(is.null(input$table)) return(NULL)
+        if(is.null(input$var_ungroup)) return(NULL)
         
         vars.group <- unique(var_group$table_code)
         

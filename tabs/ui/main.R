@@ -57,8 +57,8 @@ main.control <- fluidRow(
               uiOutput('ui_table')
           ),
           div(class = 'box',
-              uiOutput('ui_var_name'),
               uiOutput('ui_var_group_option'),
+              uiOutput('ui_var_name'),
               uiOutput('ui_ungroup_vars')
           ),
           div(class = 'box',
