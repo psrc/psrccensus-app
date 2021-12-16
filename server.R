@@ -129,11 +129,6 @@ server <- function(input, output, session) {
     output$ui_var_name <- renderUI({
         if(is.null(input$table)) return(NULL)
         
-        # selectInput('var_name',
-        #             'Variable',
-        #             choices = c('All Variables' = 'all', var_names()),
-        #             width = '25rem')        
-        
         vars.group <- unique(var_group$table_code)
         
         if(input$table %in% vars.group & input$var_ungroup == TRUE) {
@@ -158,8 +153,6 @@ server <- function(input, output, session) {
                         choices = c('All Variables' = 'all', var_names()),
                         width = '25rem')
         }
-        
-        
     })
     
     output$ui_dataset <- renderUI({
@@ -323,6 +316,13 @@ server <- function(input, output, session) {
         #### table variables grouped ----
         if(input$table %in% unique(var_group$table_code) & input$var_ungroup == FALSE) {
             recs <- group_recs(recs, input$var_group_option) # removed variable, GEOID, label column
+            
+            if(input$table == 'B01001') {
+                age_groups <- c('Total', 'Total Female', 'Total Male', '0 to 4 years', '5 to 17 years', '18 to 64 years',
+                                '65 to 84 years', '85 years and over')
+                recs$grouping <- factor(recs$grouping, levels = age_groups)
+                recs <- recs %>% arrange(name, grouping)
+            }
         }
         
         #### filter for variable ----
@@ -408,6 +408,13 @@ server <- function(input, output, session) {
                 df[[x_val]] <- factor(df[[x_val]], levels = counties)
             } 
            
+            # subtitle for grouped/ungrouped data ---- 
+            if('label' %in% colnames(df)) {
+                plot_subtitle <- str_replace_all(unique(df$label), '!!', ' > ')
+            } else {
+                plot_subtitle <- unique(df$grouping)
+            }
+            
             geog_choices = c('Counties & Region' = 'county',
                              'Tract' = 'tract',
                              'Metropolitan Statistical Area (MSA)' = 'msa',
@@ -419,7 +426,7 @@ server <- function(input, output, session) {
                 labs(x = names(geog_choices[which(geog_choices == input$geog_type)]),
                      y = str_to_title(y_val),
                      title = names(vars[which(vars == input$table)]),
-                     subtitle = str_replace_all(unique(df$label), '!!', ' > '),
+                     subtitle = plot_subtitle, 
                      caption = paste0('Source: ', input$dataset, ", ", input$dataset_year)
                      ) +
                 theme(legend.title = element_blank(),
@@ -462,7 +469,8 @@ server <- function(input, output, session) {
             } else if(colnames(df)[i] %in% hide_columns()){
                 e <- colnames(df)[i]
             } else {
-                e <- str_to_title(colnames(df)[i])
+                e <- str_replace_all(colnames(df)[i], "_", " ")
+                e <- str_to_title(e)
             }
             ifelse(is.null(col_names), col_names <- e, col_names <- c(col_names, e))
         }
