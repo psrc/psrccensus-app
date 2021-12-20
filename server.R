@@ -321,6 +321,7 @@ server <- function(input, output, session) {
             if(input$table == 'B01001') {
                 age_groups <- c('Total', 'Total Female', 'Total Male', '0 to 4 years', '5 to 17 years', '18 to 64 years',
                                 '65 to 84 years', '85 years and over')
+                browser()
                 recs$grouping_fac <- factor(recs$grouping, levels = age_groups)
                 recs <- recs %>% arrange(name, grouping_fac)
             }
@@ -331,7 +332,7 @@ server <- function(input, output, session) {
            (input$var_name != 'all' & input$var_ungroup == TRUE)) {
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
-        } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)) & input$var_ungroup == FALSE) {
+        } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
             recs <- recs %>%
                 filter(.data$grouping == input$var_name)
         }
