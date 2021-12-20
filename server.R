@@ -333,7 +333,7 @@ server <- function(input, output, session) {
                 filter(.data$variable == input$var_name)
         } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code))) {
             recs <- recs %>%
-                filter(grouping == input$var_name)
+                filter(.data$grouping == input$var_name)
         }
         
         incProgress(amount = .4, message = 'Ready to render data')
