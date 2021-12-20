@@ -321,8 +321,8 @@ server <- function(input, output, session) {
             if(input$table == 'B01001') {
                 age_groups <- c('Total', 'Total Female', 'Total Male', '0 to 4 years', '5 to 17 years', '18 to 64 years',
                                 '65 to 84 years', '85 years and over')
-                recs$grouping <- factor(recs$grouping, levels = age_groups)
-                recs <- recs %>% arrange(name, grouping)
+                recs$grouping_fac <- factor(recs$grouping, levels = age_groups)
+                recs <- recs %>% arrange(name, grouping_fac)
             }
         }
         
@@ -332,10 +332,8 @@ server <- function(input, output, session) {
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
         } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)) & input$var_ungroup == FALSE) {
-            # recs <- recs %>%
-            #     filter(.data$grouping == input$var_name)
             recs <- recs %>%
-                filter(.data$name == 'King County')
+                filter(.data$grouping == input$var_name)
         }
         
         incProgress(amount = .4, message = 'Ready to render data')
@@ -345,7 +343,7 @@ server <- function(input, output, session) {
     
     hide_columns <- eventReactive(input$go, {
         # return a vector of column names to hide in DT
-        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state')
+        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state', 'grouping_fac')
         df <- main_table()
         
         if(input$dataset != 'Decennial' & input$trend == FALSE) {
