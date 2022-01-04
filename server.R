@@ -317,7 +317,9 @@ server <- function(input, output, session) {
         #### table variables grouped ----
         if(input$table %in% unique(var_group$table_code) & input$var_ungroup == FALSE) {
             recs <- group_recs(recs, input$var_group_option) # removed variable, GEOID, label column
-            
+            recs <- recs %>% 
+                mutate(across(where(is.factor), as.character)) %>% 
+                mutate(group_chr = as.character(grouping))
             # if(input$table == 'B01001') {
             #     recs$grouping <- as.character(recs$grouping)
             #     recs$grouping_fac <- recs$grouping
@@ -337,7 +339,8 @@ server <- function(input, output, session) {
                 filter(.data$variable == input$var_name)
         } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
             recs <- recs %>%
-                filter(.data$grouping == input$var_name)
+                filter(.data$group_chr == input$var_name)
+                # filter(.data$grouping == input$var_name)
         }
         
         incProgress(amount = .4, message = 'Ready to render data')
