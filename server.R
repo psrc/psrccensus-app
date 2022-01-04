@@ -318,12 +318,16 @@ server <- function(input, output, session) {
         if(input$table %in% unique(var_group$table_code) & input$var_ungroup == FALSE) {
             recs <- group_recs(recs, input$var_group_option) # removed variable, GEOID, label column
             
-            if(input$table == 'B01001') {
-                age_groups <- c('Total', 'Total Female', 'Total Male', '0 to 4 years', '5 to 17 years', '18 to 64 years',
-                                '65 to 84 years', '85 years and over')
-                recs$grouping_fac <- factor(recs$grouping, levels = age_groups)
-                recs <- recs %>% arrange(name, grouping_fac)
-            }
+            # if(input$table == 'B01001') {
+            #     recs$grouping <- as.character(recs$grouping)
+            #     recs$grouping_fac <- recs$grouping
+            #     
+            #     age_groups <- c('Total', 'Total Female', 'Total Male', '0 to 4 years', '5 to 17 years', '18 to 64 years',
+            #                     '65 to 84 years', '85 years and over')
+            #     
+            #     recs$grouping_fac <- factor(recs$grouping_fac, levels = age_groups)
+            #     recs <- recs %>% arrange(name, grouping_fac)
+            # }
         }
         
         #### filter for variable ----
@@ -477,7 +481,7 @@ server <- function(input, output, session) {
         }
         
         tbl.u <- table_universe()
-        
+
         datatable(df,
                   caption = HTML(paste0('Table: ', isolate(input$table), ' ', tbl.u$title, '<br/> Universe: ', tbl.u$universe)),
                   colnames = col_names,
