@@ -340,6 +340,7 @@ server <- function(input, output, session) {
         } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
             recs <- recs %>%
                 filter(.data$group_chr == input$var_name)
+            print(recs)
                 # filter(.data$grouping == input$var_name)
         }
         
@@ -350,7 +351,7 @@ server <- function(input, output, session) {
     
     hide_columns <- eventReactive(input$go, {
         # return a vector of column names to hide in DT
-        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state', 'grouping_fac')
+        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state', 'group_chr')
         df <- main_table()
         
         if(input$dataset != 'Decennial' & input$trend == FALSE) {
