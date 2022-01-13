@@ -141,9 +141,11 @@ server <- function(input, output, session) {
             t <- var_group %>%
                 filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
             
-            vars <- unique(t$grouping)
+            vars <- as.character(unique(t$grouping))
+            # browser()
+            message('List variables (vars): ', vars, '\n')
             names(vars) <- vars
-            
+
             selectInput('var_name',
                         'Variable',
                         choices = c('All Variables' = 'all', vars)
@@ -335,17 +337,20 @@ server <- function(input, output, session) {
         if(input$var_name != 'all' & !(input$table %in% unique(var_group$table_code)) |
            (input$var_name != 'all' & input$var_ungroup == TRUE)) {
             message(input$var_name)
+            
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
         } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
-            # print(recs$group_chr)
-            message(head(recs))
-            message(glimpse(recs))
             message(input$var_name)
-            message(head(recs$group_chr))
+            
+            # t <- var_group %>%
+            #     filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
+            # vars <- as.factor(unique(t$grouping))
+            # message(vars)
+            # browser()
             recs <- recs %>%
                 filter(.data$group_chr == input$var_name)
-            message(recs)
+            
                 # filter(.data$grouping == input$var_name)
         }
         
