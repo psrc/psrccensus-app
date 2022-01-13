@@ -292,10 +292,8 @@ server <- function(input, output, session) {
                                      FIPS = fips,
                                      acs.type = str_to_lower(input$dataset))
             }
-            message(recs)
             recs <- recs %>%
                 select({{col_names}}, .data$label, everything())
-            message(recs)
             
         } else if(input$dataset == 'Decennial') {
             incProgress(message = 'Gathering Decennial Census data')
@@ -339,12 +337,10 @@ server <- function(input, output, session) {
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
         } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
-            message(recs)
-            message(input$var_name)
             # print(recs$group_chr)
             recs <- recs %>%
                 filter(.data$group_chr == input$var_name)
-            
+            message(recs)
                 # filter(.data$grouping == input$var_name)
         }
         
