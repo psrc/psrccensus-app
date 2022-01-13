@@ -142,8 +142,6 @@ server <- function(input, output, session) {
                 filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
             
             vars <- as.character(unique(t$grouping))
-            # browser()
-            message('List variables (vars): ', vars, '\n')
             names(vars) <- vars
 
             selectInput('var_name',
@@ -321,37 +319,19 @@ server <- function(input, output, session) {
             recs <- recs %>% 
                 mutate(across(where(is.factor), as.character)) %>% 
                 mutate(group_chr = as.character(grouping))
-            # if(input$table == 'B01001') {
-            #     recs$grouping <- as.character(recs$grouping)
-            #     recs$grouping_fac <- recs$grouping
-            #     
-            #     age_groups <- c('Total', 'Total Female', 'Total Male', '0 to 4 years', '5 to 17 years', '18 to 64 years',
-            #                     '65 to 84 years', '85 years and over')
-            #     
-            #     recs$grouping_fac <- factor(recs$grouping_fac, levels = age_groups)
-            #     recs <- recs %>% arrange(name, grouping_fac)
-            # }
         }
         
         #### filter for variable ----
         if(input$var_name != 'all' & !(input$table %in% unique(var_group$table_code)) |
            (input$var_name != 'all' & input$var_ungroup == TRUE)) {
-            message(input$var_name)
             
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
-        } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
-            message(input$var_name)
             
-            # t <- var_group %>%
-            #     filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
-            # vars <- as.factor(unique(t$grouping))
-            # message(vars)
-            # browser()
+        } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
+
             recs <- recs %>%
                 filter(.data$group_chr == input$var_name)
-            
-                # filter(.data$grouping == input$var_name)
         }
         
         incProgress(amount = .4, message = 'Ready to render data')
