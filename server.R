@@ -83,6 +83,39 @@ server <- function(input, output, session) {
         } else {
             enable('trend')
         }
+        
+    })
+    
+    output$ui_ungroup_vars <- renderUI({
+        if(is.null(input$table)) return(NULL)
+
+        # display checkbox to un-group variables if topic is found in variables_groupings.csv
+        if(input$table %in% unique(var_group$table_code)) {
+            checkboxInput('var_ungroup',
+                          'Ungroup Variables',
+                          width = '75%')
+        } else {
+            NULL
+        }
+
+    })
+
+    output$ui_var_group_option <- renderUI({
+        if(is.null(input$table)) return(NULL)
+
+        # display if topic is found in variables_groupings.csv
+        if(input$table %in% unique(var_group$table_code)) {
+            t <- var_group %>%
+                filter(table_code == input$table)
+            group_options <- unique(t$group_name)
+            selectInput('var_group_option',
+                        'Grouping Option',
+                        choices = group_options,
+                        width = '25rem')
+        } else {
+            NULL
+        }
+
     })
     
     output$ui_table <- renderUI({
@@ -95,12 +128,32 @@ server <- function(input, output, session) {
     
     output$ui_var_name <- renderUI({
         if(is.null(input$table)) return(NULL)
+        if(is.null(input$var_ungroup)) return(NULL)
         
-        selectInput('var_name',
-                    'Variable',
-                    choices = c('All Variables' = 'all', var_names()),
-                    width = '20rem')
+        vars.group <- unique(var_group$table_code)
         
+        if(input$table %in% vars.group & input$var_ungroup == TRUE) {
+            selectInput('var_name',
+                        'Variable',
+                        choices = c('All Variables' = 'all', var_names())
+            )
+        } else if (input$table %in% vars.group & input$var_ungroup == FALSE) {
+            t <- var_group %>%
+                filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
+            
+            vars <- as.character(unique(t$grouping))
+            names(vars) <- vars
+
+            selectInput('var_name',
+                        'Variable',
+                        choices = c('All Variables' = 'all', vars)
+            )
+        } else {
+            selectInput('var_name',
+                        'Variable',
+                        choices = c('All Variables' = 'all', var_names()),
+                        width = '25rem')
+        }
     })
     
     output$ui_dataset <- renderUI({
@@ -143,6 +196,7 @@ server <- function(input, output, session) {
         }
         
     })
+    
 
     ## main control reactives ----
 
@@ -160,18 +214,17 @@ server <- function(input, output, session) {
     })
     
     var_names <- reactive({
-        # populate variable dropdown
+        # populate initial variable dropdown
+        # see observe({}) for updating var_names with grouped variables
         if(is.null(input$table)) return(NULL)
         
-        t <- var.df %>% 
-            filter(.data$census_table_code == input$table) 
-       
-        t.dist <- t %>% 
-            select(.data$variable_description, .data$name) %>% 
+        t <- var.df %>%
+            filter(.data$census_table_code == input$table) %>%
+            select(.data$variable_description, .data$name) %>%
             distinct()
-        
-        vars <- t.dist$name
-        names(vars) <- t.dist$variable_description
+
+        vars <- t$name
+        names(vars) <- t$variable_description
         return(vars)
     })
     
@@ -239,7 +292,6 @@ server <- function(input, output, session) {
                                      FIPS = fips,
                                      acs.type = str_to_lower(input$dataset))
             }
-            
             recs <- recs %>%
                 select({{col_names}}, .data$label, everything())
             
@@ -261,10 +313,25 @@ server <- function(input, output, session) {
         
         incProgress(amount = .5, message = 'Data gathered')
         
-        # filter for variable
-        if(input$var_name != 'all') {
+        #### table variables grouped ----
+        if(input$table %in% unique(var_group$table_code) & input$var_ungroup == FALSE) {
+            recs <- group_recs(recs, input$var_group_option) # removed variable, GEOID, label column
+            recs <- recs %>% 
+                mutate(across(where(is.factor), as.character)) %>% 
+                mutate(group_chr = as.character(grouping))
+        }
+        
+        #### filter for variable ----
+        if(input$var_name != 'all' & !(input$table %in% unique(var_group$table_code)) |
+           (input$var_name != 'all' & input$var_ungroup == TRUE)) {
+            
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
+            
+        } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
+
+            recs <- recs %>%
+                filter(.data$group_chr == input$var_name)
         }
         
         incProgress(amount = .4, message = 'Ready to render data')
@@ -272,9 +339,9 @@ server <- function(input, output, session) {
         return(recs)
     })
     
-    show_columns <- eventReactive(input$go, {
-        # return a vector of column names to show in DT
-        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state')
+    hide_columns <- eventReactive(input$go, {
+        # return a vector of column names to hide in DT
+        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state', 'group_chr')
         df <- main_table()
         
         if(input$dataset != 'Decennial' & input$trend == FALSE) {
@@ -284,7 +351,6 @@ server <- function(input, output, session) {
             target <- which(colnames(df) %in% hide_cols)
         } else if(input$dataset == 'Decennial') {
             target <- which(colnames(df) %in% hide_cols)
-            # target <- NULL
         }
         
         return(target)
@@ -341,6 +407,13 @@ server <- function(input, output, session) {
                 df[[x_val]] <- factor(df[[x_val]], levels = counties)
             } 
            
+            # subtitle for grouped/ungrouped data ---- 
+            if('label' %in% colnames(df)) {
+                plot_subtitle <- str_replace_all(unique(df$label), '!!', ' > ')
+            } else {
+                plot_subtitle <- unique(df$grouping)
+            }
+            
             geog_choices = c('Counties & Region' = 'county',
                              'Tract' = 'tract',
                              'Metropolitan Statistical Area (MSA)' = 'msa',
@@ -352,7 +425,7 @@ server <- function(input, output, session) {
                 labs(x = names(geog_choices[which(geog_choices == input$geog_type)]),
                      y = str_to_title(y_val),
                      title = names(vars[which(vars == input$table)]),
-                     subtitle = str_replace_all(unique(df$label), '!!', ' > '),
+                     subtitle = plot_subtitle, 
                      caption = paste0('Source: ', input$dataset, ", ", input$dataset_year)
                      ) +
                 theme(legend.title = element_blank(),
@@ -387,24 +460,26 @@ server <- function(input, output, session) {
         withProgress(df <- main_table(),
                      detail = 'This may take a while...')
         
+        # clean column names
         col_names <- c()
         for(i in 1:length(colnames(df))) {
             if(colnames(df)[i] %in% c('GEOID', 'moe')) {
                 e <- str_to_upper(colnames(df)[i])
-            } else if(colnames(df)[i] %in% show_columns()){
+            } else if(colnames(df)[i] %in% hide_columns()){
                 e <- colnames(df)[i]
             } else {
-                e <- str_to_title(colnames(df)[i])
+                e <- str_replace_all(colnames(df)[i], "_", " ")
+                e <- str_to_title(e)
             }
             ifelse(is.null(col_names), col_names <- e, col_names <- c(col_names, e))
         }
         
         tbl.u <- table_universe()
-        
+
         datatable(df,
                   caption = HTML(paste0('Table: ', isolate(input$table), ' ', tbl.u$title, '<br/> Universe: ', tbl.u$universe)),
                   colnames = col_names,
-                  options = list(columnDefs = list(list(visible = FALSE, targets = show_columns()))),
+                  options = list(columnDefs = list(list(visible = FALSE, targets = hide_columns()))),
                   extensions = 'Responsive')
         })
     

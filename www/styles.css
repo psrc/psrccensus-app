@@ -39,7 +39,7 @@ nav {
 
 .box:first-of-type {
   display: flex;
-  width: 30%;
+  /*width: 30%;*/
   background-color: #bcbec0;
 }
 
@@ -49,6 +49,10 @@ nav {
 
 .box:nth-of-type(3) {
    background-color: #e3c9e3;
+}
+
+.box:nth-of-type(4) {
+   background-color: #fbd6c9;
 }
 
 .main-control-grp {
