@@ -334,6 +334,7 @@ server <- function(input, output, session) {
         #### filter for variable ----
         if(input$var_name != 'all' & !(input$table %in% unique(var_group$table_code)) |
            (input$var_name != 'all' & input$var_ungroup == TRUE)) {
+            message(input$var_name)
             recs <- recs %>%
                 filter(.data$variable == input$var_name)
         } else if(input$var_name != 'all' & (input$table %in% unique(var_group$table_code)& input$var_ungroup == FALSE)) {
