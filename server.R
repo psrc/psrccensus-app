@@ -146,9 +146,9 @@ server <- function(input, output, session) {
                                        side = 'left',
                                        pad = '-'))
 
-            vars <- as.character(unique(t$vdesc))
-            names(vars) <- vars
-
+            vars <- as.character(unique(t$grouping))
+            names(vars) <- as.character(unique(t$vdesc))
+            
             selectInput('var_name',
                         'Variable',
                         choices = c('All Variables' = 'all', vars)
