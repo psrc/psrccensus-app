@@ -141,8 +141,8 @@ server <- function(input, output, session) {
             t <- var_group %>%
                 filter(.data$table_code == input$table & .data$group_name == input$var_group_option) %>% 
                 arrange(group_order) %>% 
-                mutate(vdesc = str_pad(grouping,
-                                       width = nchar(grouping) + depth,
+                mutate(vdesc = str_pad(as.character(grouping),
+                                       width = nchar(as.character(grouping)) + depth,
                                        side = 'left',
                                        pad = '-'))
 
