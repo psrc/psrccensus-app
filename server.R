@@ -140,9 +140,13 @@ server <- function(input, output, session) {
         } else if (input$table %in% vars.group & input$var_ungroup == FALSE) {
             t <- var_group %>%
                 filter(.data$table_code == input$table & .data$group_name == input$var_group_option) %>% 
-                arrange(group_order)
+                arrange(group_order) %>% 
+                mutate(vdesc = str_pad(grouping,
+                                       width = nchar(grouping) + depth,
+                                       side = 'left',
+                                       pad = '-'))
 
-            vars <- as.character(unique(t$grouping))
+            vars <- as.character(unique(t$vdesc))
             names(vars) <- vars
 
             selectInput('var_name',
@@ -218,7 +222,6 @@ server <- function(input, output, session) {
         # populate initial variable dropdown
         # see observe({}) for updating var_names with grouped variables
         if(is.null(input$table)) return(NULL)
-        # if(input$table == 'B25106') browser()
 
         t <- var.df %>%
             filter(.data$census_table_code == input$table & .data$census_year == input$dataset_year) %>%
@@ -269,11 +272,6 @@ server <- function(input, output, session) {
         
         return(list(title = str_to_title(df$title), universe = df$universe))
     })
-    
-    # var_group_filter <- eventReactive(input$go, {
-    #     var_group %>% 
-    #         filter(table_code == input$table)
-    # })
     
     main_table <- eventReactive(input$go, {
         
