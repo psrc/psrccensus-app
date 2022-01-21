@@ -139,9 +139,14 @@ server <- function(input, output, session) {
             )
         } else if (input$table %in% vars.group & input$var_ungroup == FALSE) {
             t <- var_group %>%
-                filter(.data$table_code == input$table & .data$group_name == input$var_group_option)
-            
-            vars <- as.character(unique(t$grouping))
+                filter(.data$table_code == input$table & .data$group_name == input$var_group_option) %>% 
+                arrange(group_order) %>% 
+                mutate(vdesc = str_pad(grouping,
+                                       width = nchar(grouping) + depth,
+                                       side = 'left',
+                                       pad = '-'))
+
+            vars <- as.character(unique(t$vdesc))
             names(vars) <- vars
 
             selectInput('var_name',
@@ -217,14 +222,19 @@ server <- function(input, output, session) {
         # populate initial variable dropdown
         # see observe({}) for updating var_names with grouped variables
         if(is.null(input$table)) return(NULL)
-        
-        t <- var.df %>%
-            filter(.data$census_table_code == input$table) %>%
-            select(.data$variable_description, .data$name) %>%
-            distinct()
 
+        t <- var.df %>%
+            filter(.data$census_table_code == input$table & .data$census_year == input$dataset_year) %>%
+            select(.data$variable_description, .data$name, .data$depth) %>%
+            arrange(.data$name) %>% 
+            distinct() %>% 
+            mutate(vdesc = str_pad(variable_description, 
+                                   width = nchar(variable_description) + depth, 
+                                   side = 'left',
+                                   pad = '-'))
+            
         vars <- t$name
-        names(vars) <- t$variable_description
+        names(vars) <- t$vdesc
         return(vars)
     })
     
@@ -316,9 +326,24 @@ server <- function(input, output, session) {
         #### table variables grouped ----
         if(input$table %in% unique(var_group$table_code) & input$var_ungroup == FALSE) {
             recs <- group_recs(recs, input$var_group_option) # removed variable, GEOID, label column
+
+            vg <- var_group %>% 
+                filter(table_code == input$table) %>% 
+                distinct(grouping, group_order)
+            
             recs <- recs %>% 
+                left_join(vg, by = "grouping") %>% 
                 mutate(across(where(is.factor), as.character)) %>% 
                 mutate(group_chr = as.character(grouping))
+
+            if('Region' %in% unique(recs$name)) {
+                # ensure 'Region' element is last item in graph
+                counties <- c('King County', 'Kitsap County', 'Pierce County', 'Snohomish County', 'Region')
+                recs$name <- factor(recs$name, levels = counties)
+            } 
+            
+            recs <- recs %>% 
+                arrange(name, group_order)
         }
         
         #### filter for variable ----
@@ -341,7 +366,7 @@ server <- function(input, output, session) {
     
     hide_columns <- eventReactive(input$go, {
         # return a vector of column names to hide in DT
-        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state', 'group_chr')
+        hide_cols <- c('variable', 'concept', 'census_geography', 'acs_type', 'year', 'state', 'group_chr', 'group_order')
         df <- main_table()
         
         if(input$dataset != 'Decennial' & input$trend == FALSE) {
