@@ -162,7 +162,6 @@ server <- function(input, output, session) {
     })
     
     output$ui_dataset <- renderUI({
-        if(is.null(input$var_name)) return(NULL)
         
         selectInput('dataset',
                     'Dataset',
@@ -224,10 +223,10 @@ server <- function(input, output, session) {
         if(is.null(input$table)) return(NULL)
 
         t <- var.df %>%
-            filter(.data$census_table_code == input$table & .data$census_year == input$dataset_year) %>%
+            filter(.data$census_table_code == input$table) %>%
             select(.data$variable_description, .data$name, .data$depth) %>%
             arrange(.data$name) %>% 
-            distinct() %>% 
+            distinct(.data$name, .keep_all = TRUE) %>% 
             mutate(vdesc = str_pad(variable_description, 
                                    width = nchar(variable_description) + depth, 
                                    side = 'left',
@@ -240,7 +239,7 @@ server <- function(input, output, session) {
     
     dataset <- reactive({
         # populate dataset dropdown
-        if(is.null(input$var_name)) return(NULL)
+        if(is.null(input$table)) return(NULL)
      
         t <- var.df %>% 
             filter(.data$census_table_code == input$table)
@@ -256,7 +255,7 @@ server <- function(input, output, session) {
         t <- var.df %>% 
             filter(.data$census_table_code == input$table & .data$census_product == input$dataset) 
         
-        sort(unique(t$census_year))
+        sort(unique(t$census_year), decreasing = TRUE)
     })
     
 
