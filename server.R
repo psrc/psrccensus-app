@@ -240,9 +240,13 @@ server <- function(input, output, session) {
     dataset <- reactive({
         # populate dataset dropdown
         if(is.null(input$table)) return(NULL)
-     
+        
         t <- var.df %>% 
             filter(.data$census_table_code == input$table)
+        
+        if(input$geog_type == 'tract') {
+            t <- t %>% filter(.data$census_product != 'ACS1')
+        }
         
         sort(unique(t$census_product))
     })
@@ -394,12 +398,13 @@ server <- function(input, output, session) {
     
     map <- eventReactive(input$go, {
         df <- main_table()
-        if(input$geog_type == 'tract') {
+        if(input$geog_type == 'tract' & input$var_name != 'all') {
             withProgress(map_out <- create_tract_map(tract.tbl = df,
                              tract.lyr = map_feature()),
                          message = 'Generating map')
+            return(map_out)
         }
-        return(map_out)
+        
     })
     
     ### graph ----
@@ -501,7 +506,7 @@ server <- function(input, output, session) {
         tbl.u <- table_universe()
 
         datatable(df,
-                  caption = HTML(paste0('Table: ', isolate(input$table), ' ', tbl.u$title, '<br/> Universe: ', tbl.u$universe)),
+                  caption = HTML(paste0('Table: ', isolate(input$dataset), ' ', isolate(input$table), ' ', tbl.u$title, '<br/> Universe: ', tbl.u$universe)),
                   colnames = col_names,
                   options = list(columnDefs = list(list(visible = FALSE, targets = hide_columns()))),
                   extensions = 'Responsive')
