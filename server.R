@@ -325,27 +325,27 @@ server <- function(input, output, session) {
         }
         
         incProgress(amount = .5, message = 'Data gathered')
-        
+
         #### table variables grouped ----
         if(input$table %in% unique(var_group$table_code) & input$var_ungroup == FALSE) {
-            recs <- group_recs(recs, input$var_group_option) # removed variable, GEOID, label column
-
-            vg <- var_group %>% 
-                filter(table_code == input$table) %>% 
-                distinct(grouping, group_order)
+            recs <- group_recs(recs, input$var_group_option) # removed variable, label column
             
-            recs <- recs %>% 
-                left_join(vg, by = "grouping") %>% 
-                mutate(across(where(is.factor), as.character)) %>% 
+            vg <- var_group %>%
+                filter(table_code == input$table) %>%
+                distinct(grouping, group_order)
+
+            recs <- recs %>%
+                left_join(vg, by = "grouping") %>%
+                mutate(across(where(is.factor), as.character)) %>%
                 mutate(group_chr = as.character(grouping))
 
             if('Region' %in% unique(recs$name)) {
                 # ensure 'Region' element is last item in graph
                 counties <- c('King County', 'Kitsap County', 'Pierce County', 'Snohomish County', 'Region')
                 recs$name <- factor(recs$name, levels = counties)
-            } 
-            
-            recs <- recs %>% 
+            }
+
+            recs <- recs %>%
                 arrange(name, group_order)
         }
         
@@ -398,9 +398,15 @@ server <- function(input, output, session) {
     
     map <- eventReactive(input$go, {
         df <- main_table()
+
+        if('grouping' %in% colnames(df) & input$var_ungroup == FALSE) {
+            # group_recs() returns format not compatible with create_tract_map()
+            df <- df %>% ungroup(GEOID, grouping, group_name)
+        }
+        
         if(input$geog_type == 'tract' & input$var_name != 'all') {
             withProgress(map_out <- create_tract_map(tract.tbl = df,
-                             tract.lyr = map_feature()),
+                                                     tract.lyr = map_feature()),
                          message = 'Generating map')
             return(map_out)
         }
