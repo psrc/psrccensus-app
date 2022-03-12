@@ -577,6 +577,18 @@ server <- function(input, output, session) {
             write.xlsx(main_table(), file)
         }
     )
-    
+   
+    output$table_opts <- renderDT({
+        column_names <- topics.df %>% 
+            rename(topic = tags) %>%
+            colnames() %>% 
+            str_to_title() %>% 
+            str_replace_all("_", " ")
+        
+        datatable(topics.df,
+                  filter = c("top"),
+                  colnames = column_names)
+    })
 }
+
 
