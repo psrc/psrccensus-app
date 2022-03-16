@@ -14,6 +14,7 @@ library(here)
 # library(plotly)
 
 db.table <- 'census.variable_dim'
+db.topics.table <- 'census_explorer.topics'
 
 arc.root <- "https://services6.arcgis.com/GWxg6t7KXELn1thE/arcgis/rest/services/" 
 
@@ -45,7 +46,7 @@ var.df <- read.dt(db.table, 'table_name') %>%
   mutate(concept_original = concept) %>% 
   mutate(concept = str_replace_all(concept, 'IN\\s\\d{4}\\s', ""))
 
-topic.df <- read.csv(here('data', 'topic-list.csv'))
+topics.df <- read.dt(db.topics.table, 'table_name')
 
 # source tab files
 tab_files <- list.files(path = "tabs", full.names = T, recursive = T)

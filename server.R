@@ -209,7 +209,7 @@ server <- function(input, output, session) {
         # populate table dropdown
         if(is.null(input$topic)) return(NULL)
         
-        df <- topic.df %>% 
+        df <- topics.df %>% 
             filter(tags == input$topic) 
 
         tables <- unique(df$table_code)
@@ -268,7 +268,7 @@ server <- function(input, output, session) {
     ### table ----
     
     table_universe <- eventReactive(input$go, {
-        df <- topic.df %>% 
+        df <- topics.df %>% 
             filter(table_code == input$table) %>% 
             mutate(title = str_replace_all(title, 'IN\\s\\d{4}\\s', "")) %>% 
             distinct(title, universe)
@@ -577,6 +577,18 @@ server <- function(input, output, session) {
             write.xlsx(main_table(), file)
         }
     )
-    
+   
+    output$table_opts <- renderDT({
+        column_names <- topics.df %>% 
+            rename(topic = tags) %>%
+            colnames() %>% 
+            str_to_title() %>% 
+            str_replace_all("_", " ")
+        
+        datatable(topics.df,
+                  filter = c("top"),
+                  colnames = column_names)
+    })
 }
+
 
