@@ -1,4 +1,4 @@
-ref.topics.table <- fluidRow(column(12, DTOutput('table_opts')))
+ref.topics.table <- fluidRow(column(10, DTOutput('table_opts'), offset = 1))
 
 ref <- tabPanel('Reference',
                 includeMarkdown('md/ref.md'),

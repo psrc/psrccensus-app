@@ -48,8 +48,6 @@ var.df <- read.dt(db.table, 'table_name') %>%
 
 topics.df <- read.dt(db.topics.table, 'table_name')
 
-topic.df <- read.csv(here('data', 'topic-list.csv'))
-
 # source tab files
 tab_files <- list.files(path = "tabs", full.names = T, recursive = T)
 suppressMessages(lapply(tab_files, source))
