@@ -27,7 +27,7 @@ input.trend <- checkboxInput('trend',
 
 input.topic <- selectInput('topic', 
                            'Select Topic', 
-                           choices = unique(topic.df$tags))
+                           choices = unique(topics.df$tags))
 
 
 # main control ------------------------------------------------------------
